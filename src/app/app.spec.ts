@@ -1,13 +1,38 @@
-import { TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { App } from "./app";
 import { APP_SETTINGS, SETTINGS } from "./settings";
 import { Weather } from "./core/weather";
 import { signal } from "@angular/core";
 
 describe("App (demo mode)", () => {
+  async function navigate(
+    fixture: ComponentFixture<App>,
+    page: "home" | "menu",
+  ): Promise<void> {
+    const el = fixture.nativeElement as HTMLElement;
+    const hash = `#${page}`;
+    // Anchor navigation is a browser task, outside Angular's whenStable tracking.
+    const navigated =
+      window.location.hash === hash
+        ? Promise.resolve()
+        : new Promise<void>((resolve) => {
+            window.addEventListener("hashchange", () => resolve(), {
+              once: true,
+            });
+          });
+    el.querySelector<HTMLAnchorElement>(`a[href="${hash}"]`)!.click();
+    await navigated;
+    await fixture.whenStable();
+    expect(window.location.hash).toBe(hash);
+    expect(
+      el.querySelector(`a[href="${hash}"]`)!.getAttribute("aria-current"),
+    ).toBe("page");
+  }
+
   beforeEach(async () => {
     localStorage.clear();
-    window.location.hash = "home";
+    // Reset the URL without leaving a queued hashchange for the next test.
+    window.history.replaceState(null, "", "#home");
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
@@ -42,8 +67,7 @@ describe("App (demo mode)", () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
-    el.querySelector<HTMLAnchorElement>('a[href="#menu"]')!.click();
-    await fixture.whenStable();
+    await navigate(fixture, "menu");
     expect(el.querySelectorAll(".day-card")).toHaveLength(7);
     expect(el.querySelectorAll(".meal-slot")).toHaveLength(9);
     expect(
@@ -84,8 +108,7 @@ describe("App (demo mode)", () => {
     )!.click();
     await fixture.whenStable();
     expect(el.textContent).toContain("Vegetable soup");
-    el.querySelector<HTMLAnchorElement>('a[href="#home"]')!.click();
-    await fixture.whenStable();
+    await navigate(fixture, "home");
     expect(el.querySelector("app-menu-page")).toBeNull();
     expect(el.textContent).toContain(SETTINGS.text.calendar);
   });
@@ -94,8 +117,7 @@ describe("App (demo mode)", () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
-    el.querySelector<HTMLAnchorElement>('a[href="#menu"]')!.click();
-    await fixture.whenStable();
+    await navigate(fixture, "menu");
     const slot = () => el.querySelector(".meal-slot")!;
     const openAdd = async () => {
       Array.from(slot().querySelectorAll<HTMLButtonElement>("button"))
@@ -135,10 +157,8 @@ describe("App (demo mode)", () => {
     expect(el.querySelectorAll(".meal-slot")[1].textContent).not.toContain(
       "Ensalada",
     );
-    el.querySelector<HTMLAnchorElement>('a[href="#home"]')!.click();
-    await fixture.whenStable();
-    el.querySelector<HTMLAnchorElement>('a[href="#menu"]')!.click();
-    await fixture.whenStable();
+    await navigate(fixture, "home");
+    await navigate(fixture, "menu");
     expect(slot().textContent).toContain("Ensalada");
     expect(slot().textContent).toContain("Adultos");
   });
@@ -147,8 +167,7 @@ describe("App (demo mode)", () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
-    el.querySelector<HTMLAnchorElement>('a[href="#menu"]')!.click();
-    await fixture.whenStable();
+    await navigate(fixture, "menu");
     const slot = () => el.querySelector(".meal-slot")!;
     slot()
       .querySelector<HTMLButtonElement>('button:not([role="switch"])')!
@@ -172,10 +191,8 @@ describe("App (demo mode)", () => {
     expect(
       el.querySelectorAll('[role="switch"]')[1].getAttribute("aria-checked"),
     ).toBe("false");
-    el.querySelector<HTMLAnchorElement>('a[href="#home"]')!.click();
-    await fixture.whenStable();
-    el.querySelector<HTMLAnchorElement>('a[href="#menu"]')!.click();
-    await fixture.whenStable();
+    await navigate(fixture, "home");
+    await navigate(fixture, "menu");
     expect(
       slot().querySelector('[role="switch"]')!.getAttribute("aria-checked"),
     ).toBe("true");
