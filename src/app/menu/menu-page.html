@@ -1,0 +1,176 @@
+<header class="menu-header">
+  <div>
+    <h1 class="text-3xl font-semibold tracking-tight">{{ text.menu }}</h1>
+    <p class="mt-1 text-sm text-fg-3">{{ text.menuHelp }}</p>
+  </div>
+  <div class="week-controls">
+    <button
+      type="button"
+      [disabled]="store.saving()"
+      (click)="move(offset() - 1)"
+      [attr.aria-label]="text.previousWeek"
+      class="week-arrow"
+    >
+      ‹
+    </button>
+    <h2 class="text-center text-sm font-medium tabular-nums" aria-live="polite">
+      {{ range() }}
+    </h2>
+    <button
+      type="button"
+      [disabled]="store.saving()"
+      (click)="move(offset() + 1)"
+      [attr.aria-label]="text.nextWeek"
+      class="week-arrow"
+    >
+      ›
+    </button>
+    <button
+      type="button"
+      [disabled]="store.saving()"
+      (click)="move(0)"
+      class="primary-button"
+    >
+      {{ text.thisWeek }}
+    </button>
+  </div>
+</header>
+@if (!store.data()) {
+<p role="status" class="mb-3 text-fg-3">{{ text.loadingMenu }}</p>
+} @if (store.error() && !editing()) {
+<p role="alert" class="mb-3 text-sm text-danger">{{ text.menuChangeError }}</p>
+}
+<div class="week-grid">
+  @for (day of days(); track day.date) {
+  <section
+    class="day-card"
+    [class.day-today]="day.date === today()"
+    [attr.aria-label]="label(day.date, true)"
+  >
+    <div
+      class="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3"
+    >
+      <h3 class="font-semibold capitalize">{{ label(day.date, true) }}</h3>
+      @if (day.date === today()) {
+      <span class="rounded-full bg-primary/30 px-2 py-0.5 text-xs font-medium"
+        >{{ text.today }}</span
+      >
+      }
+    </div>
+    <div class="meal-list">
+      @for (meal of day.meals; track meal) {
+      <div class="meal-slot">
+        <h4
+          class="mb-2 text-xs font-semibold uppercase tracking-wider text-fg-3"
+        >
+          {{ meal === 'lunch' ? text.lunch : text.dinner }}
+        </h4>
+        @if (isAway(day.date, meal)) {
+        <p class="mt-3 flex items-center gap-2 text-accent" role="status">
+          <span aria-hidden="true" class="text-2xl">🎉</span> {{ text.eatingOut
+          }}
+        </p>
+        } @else if (editing() === day.date + ':' + meal) {
+        <form (submit)="save($event, day.date, meal)">
+          <input
+            class="field w-full"
+            type="text"
+            maxlength="200"
+            [value]="draft()"
+            (input)="draft.set($any($event.target).value)"
+            [attr.aria-label]="label(day.date, true) + ' · ' + (meal === 'lunch' ? text.lunch : text.dinner)"
+            [placeholder]="text.mealPlaceholder"
+            [disabled]="store.saving()"
+          />
+          <label class="mt-3 block text-sm text-fg-3">
+            {{ text.mealAudience }}
+            <input
+              class="field mt-1 w-full"
+              type="text"
+              maxlength="60"
+              [value]="audience()"
+              (input)="audience.set($any($event.target).value)"
+              [placeholder]="text.mealAudiencePlaceholder"
+              [disabled]="store.saving()"
+            />
+          </label>
+          @if (!adding()) {
+          <p class="mt-2 text-xs text-fg-3">{{ text.clearMealHelp }}</p>
+          }
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button
+              class="primary-button"
+              type="submit"
+              [disabled]="store.saving()"
+            >
+              {{ store.saving() ? text.savingMeal : text.tokenSave }}
+            </button>
+            <button
+              class="rounded-lg px-3 py-2 text-sm hover:bg-hover"
+              type="button"
+              [disabled]="store.saving()"
+              (click)="editing.set(null)"
+            >
+              {{ text.cancel }}
+            </button>
+          </div>
+          @if (store.error()) {
+          <p role="alert" class="mt-2 text-sm text-danger">
+            {{ text.menuSaveError }}
+          </p>
+          }
+        </form>
+        } @else {
+        <ul class="space-y-3">
+          @for (dish of items(day.date, meal); track dish.id) {
+          <li class="rounded-lg border border-line p-3">
+            @if (dish.audience) {
+            <p class="mb-1 text-xs font-semibold text-accent wrap-anywhere">
+              {{ dish.audience }}
+            </p>
+            }
+            <p class="meal-value">{{ dish.text }}</p>
+            <button
+              type="button"
+              class="mt-2 rounded-lg px-2 py-1 text-sm text-accent hover:bg-hover frame:hidden"
+              [disabled]="store.saving()"
+              (click)="edit(day.date, meal, dish)"
+              [attr.aria-label]="text.editMeal + ' · ' + dish.text"
+            >
+              {{ text.editMeal }}
+            </button>
+          </li>
+          } @empty {
+          <li class="meal-value text-fg-4">{{ text.noMeal }}</li>
+          }
+        </ul>
+        <button
+          type="button"
+          class="mt-3 rounded-lg border border-line px-3 py-2 text-sm text-accent hover:bg-hover frame:hidden"
+          [disabled]="store.saving()"
+          (click)="edit(day.date, meal)"
+          [attr.aria-label]="text.addMeal + ' · ' + label(day.date, true) + ' · ' + (meal === 'lunch' ? text.lunch : text.dinner)"
+        >
+          {{ text.addMeal }}
+        </button>
+        }
+        <button
+          type="button"
+          role="switch"
+          class="away-toggle frame:hidden"
+          [attr.aria-checked]="isAway(day.date, meal)"
+          [attr.aria-label]="text.eatingOut + ' · ' + label(day.date, true) + ' · ' + (meal === 'lunch' ? text.lunch : text.dinner)"
+          [disabled]="store.saving()"
+          (click)="toggleAway(day.date, meal)"
+        >
+          <span class="away-toggle-track" aria-hidden="true"
+            ><span class="away-toggle-thumb"></span
+          ></span>
+          <span>{{ text.eatingOut }}</span>
+        </button>
+      </div>
+      }
+    </div>
+  </section>
+  }
+</div>

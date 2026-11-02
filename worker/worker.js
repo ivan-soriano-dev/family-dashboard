@@ -8,6 +8,9 @@
  *                              { op: add | toggle | edit | delete | clearDone | clear }
  *        /lists/groceries   (same as todo)
  *
+ *   GET  /menu/YYYY-MM-DD   -> meals for the week starting on that Monday
+ *   POST /menu/YYYY-MM-DD   -> { date, meal, op: add | edit | delete, id, text, audience? }
+ *
  * Every request needs the header  X-Family-Token: <FAMILY_TOKEN>
  *
  * Settings (Cloudflare dashboard > Worker > Settings):
@@ -37,6 +40,18 @@ export default {
     try {
       if (path === '/calendar' && request.method === 'GET') return await calendar(env, cors);
       if (path === '/calendars' && request.method === 'GET') return await calendars(env, cors);
+
+      var menuMatch = path.match(/^\/menu\/(\d{4}-\d{2}-\d{2})$/);
+      if (menuMatch) {
+        var week = menuMatch[1];
+        if (!validDate(week) || new Date(week + 'T00:00:00Z').getUTCDay() !== 1) {
+          return json({ error: 'Week must be a Monday (YYYY-MM-DD)' }, 400, cors);
+        }
+        if (request.method === 'GET') return json(await readMenu(env, week), 200, cors);
+        if (request.method === 'POST') {
+          return await changeMenu(env, week, await request.json().catch(function () { return null; }), cors);
+        }
+      }
 
       var m = path.match(/^\/lists\/([a-z]+)$/);
       if (m && LISTS.indexOf(m[1]) !== -1) {
@@ -187,6 +202,70 @@ async function putWithRetry(env, key, value) {
       await new Promise(function (r) { setTimeout(r, 1100); });
     }
   }
+}
+
+/* ---------------- weekly menu ---------------- */
+
+function validDate(date) {
+  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+  var parsed = new Date(date + 'T00:00:00Z');
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
+}
+
+async function readMenu(env, week) {
+  return (await env.DATA.get('menu:' + week, 'json')) || { meals: {}, updated: 0 };
+}
+
+async function changeMenu(env, week, change, cors) {
+  if (!change || !validDate(change.date) || (change.op !== 'setAway' && typeof change.text !== 'string') ||
+      (change.meal !== 'dinner' && change.meal !== 'lunch')) {
+    return json({ error: 'Invalid meal' }, 400, cors);
+  }
+  var offset = (Date.parse(change.date) - Date.parse(week)) / 86400000;
+  if (offset < 0 || offset > 6 || (change.meal === 'lunch' && offset < 5)) {
+    return json({ error: 'Meal is outside the weekly menu slots' }, 400, cors);
+  }
+  var menu = await readMenu(env, week);
+  var key = change.date + ':' + change.meal;
+  if (change.op === 'setAway') {
+    if (typeof change.away !== 'boolean') return json({ error: 'Invalid away state' }, 400, cors);
+    menu.away = Object.assign({}, menu.away);
+    if (change.away) menu.away[key] = true;
+    else delete menu.away[key];
+    menu.updated = Date.now();
+    await putWithRetry(env, 'menu:' + week, JSON.stringify(menu));
+    return json(menu, 200, cors);
+  }
+  if (menu.away && menu.away[key]) return json({ error: 'This meal is marked as eating out' }, 409, cors);
+  var text = change.text.replace(/\s+/g, ' ').trim().slice(0, MAX_TEXT);
+  var op = change.op || 'edit';
+  var id = change.id || 'legacy';
+  if (['add', 'edit', 'delete'].indexOf(op) === -1 || typeof id !== 'string' || id.length > 100 ||
+      (change.op && (!change.id || typeof change.id !== 'string')) ||
+      (change.audience !== undefined && typeof change.audience !== 'string')) {
+    return json({ error: 'Invalid dish change' }, 400, cors);
+  }
+  var stored = menu.meals[key];
+  var items = typeof stored === 'string' ? [{ id: 'legacy', text: stored }] : (stored || []);
+  var existing = items.findIndex(function (dish) { return dish.id === id; });
+  if (op === 'add' && !text) return json({ error: 'Empty dish' }, 400, cors);
+  if (op === 'delete' || !text) {
+    items = items.filter(function (dish) { return dish.id !== id; });
+  } else {
+    if (existing === -1 && change.op === 'edit') return json({ error: 'Dish not found' }, 404, cors);
+    var dish = { id: id, text: text, audience: (change.audience || '').replace(/\s+/g, ' ').trim().slice(0, 60) };
+    if (existing === -1) {
+      if (items.length >= 20) return json({ error: 'Too many dishes in this meal' }, 400, cors);
+      items = items.concat([dish]);
+    } else {
+      items = items.map(function (item) { return item.id === id ? dish : item; });
+    }
+  }
+  if (items.length) menu.meals[key] = items;
+  else delete menu.meals[key];
+  menu.updated = Date.now();
+  await putWithRetry(env, 'menu:' + week, JSON.stringify(menu));
+  return json(menu, 200, cors);
 }
 
 /* ---------------- helpers ---------------- */

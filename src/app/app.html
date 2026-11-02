@@ -1,27 +1,75 @@
-<main
-  class="flex min-h-full flex-col gap-4 px-4 pt-5 pb-8 transition-transform duration-[2s] motion-reduce:transition-none wall:grid wall:h-full wall:grid-cols-[minmax(0,0.945fr)_minmax(0,1.2025fr)_minmax(0,1.2025fr)] wall:grid-rows-[auto_minmax(0,1fr)] wall:gap-x-[2vw] wall:gap-y-[3vh] wall:px-[2.4vw] wall:py-[3.2vh]"
-  [style.transform]="display.shift()"
->
-  <app-clock-face class="mt-1 wall:col-start-1 wall:row-start-1 wall:mt-0" />
+<div class="site-content">
+  @if (page() === 'home') {
+  <main
+    class="flex min-h-full flex-col gap-4 px-4 pt-5 pb-8 transition-transform duration-[2s] motion-reduce:transition-none wall:grid wall:h-full wall:grid-cols-[minmax(0,0.945fr)_minmax(0,1.2025fr)_minmax(0,1.2025fr)] wall:grid-rows-[auto_minmax(0,1fr)] wall:gap-x-[2vw] wall:gap-y-[3vh] wall:px-[2.4vw] wall:py-[3.2vh]"
+    [style.transform]="display.shift()"
+  >
+    <app-clock-face class="mt-1 wall:col-start-1 wall:row-start-1 wall:mt-0" />
 
-  <app-list-panel
-    class="wall:col-start-1 wall:row-start-2"
-    name="todo"
-    [heading]="text.todo"
-    [placeholder]="text.addTask"
-    [emptyText]="text.emptyTodo"
-  />
+    <app-list-panel
+      class="wall:col-start-1 wall:row-start-2"
+      name="todo"
+      [heading]="text.todo"
+      [placeholder]="text.addTask"
+      [emptyText]="text.emptyTodo"
+    />
 
-  <app-list-panel
-    class="wall:col-start-3 wall:row-span-2 wall:row-start-1"
-    name="groceries"
-    [heading]="text.groceries"
-    [placeholder]="text.addItem"
-    [emptyText]="text.emptyGroceries"
-  />
+    <app-list-panel
+      class="wall:col-start-3 wall:row-span-2 wall:row-start-1"
+      name="groceries"
+      [heading]="text.groceries"
+      [placeholder]="text.addItem"
+      [emptyText]="text.emptyGroceries"
+    />
 
-  <app-agenda class="wall:col-start-2 wall:row-span-2 wall:row-start-1" />
-</main>
+    <app-agenda class="wall:col-start-2 wall:row-span-2 wall:row-start-1" />
+  </main>
+
+  } @else {
+  <main class="menu-main" [style.transform]="display.shift()">
+    <app-menu-page />
+  </main>
+  }
+</div>
+
+<nav class="site-nav" aria-label="Main navigation">
+  <a
+    href="#home"
+    [attr.aria-current]="page() === 'home' ? 'page' : null"
+    (click)="page.set('home')"
+  >
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.7"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z" />
+    </svg>
+    <span>{{ text.home }}</span>
+  </a>
+  <a
+    href="#menu"
+    [attr.aria-current]="page() === 'menu' ? 'page' : null"
+    (click)="page.set('menu')"
+  >
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.7"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M4 3v5a3 3 0 0 0 6 0V3M7 3v18M18 3c-3 3-4 7-4 10h5M19 3v18" />
+    </svg>
+    <span>{{ text.menu }}</span>
+  </a>
+</nav>
 
 <app-status-line />
 

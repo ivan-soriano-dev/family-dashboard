@@ -63,6 +63,39 @@ other feeds remain visible. The calendar error label indicates missing or stale
 feeds. A total refresh failure keeps the previous local agenda. Cache keys contain
 hashes, not subscription links, and a replacement link never reuses an old feed's cache.
 
+## Weekly family menu
+
+Use the right-side **Home** link for the dashboard or the fork-and-knife **Menú**
+link for the meal planner. Each Monday–Sunday week has its own menu, with dinner
+on weekdays and lunch and dinner on Saturday and Sunday. The planner starts on
+the current week in the configured family time zone. Use the arrows for other
+weeks or **Esta semana** to return to the current week.
+
+Each lunch or dinner has a **Comemos fuera** switch. When enabled, a 🎉 icon
+appears and dishes cannot be added, edited or removed for that meal, including
+through the API. Existing dishes are retained and shown again when the switch is
+disabled. The state is shared across devices and cached for offline display.
+
+Each lunch or dinner can contain several dishes. Select **Añadir plato**, enter
+its name and optionally **¿Para quién?** (for example, “Niñas” or “Adultos”), then
+select **Guardar**. Repeat to add another dish. Select **Editar plato** on a dish
+to change it; saving an empty dish name removes only that dish. Existing single-dish
+menus remain readable and are converted when changed. Failed saves retain your draft for retry;
+**Cancelar** leaves the saved meal as it was. Frame mode shows meals without edit
+controls. The whole week appears together on wide displays and stacks on phones.
+
+Menus use the existing family token and `DATA` KV binding, stored as
+`menu:YYYY-MM-DD` (the Monday date), with browser copies at `fd:menu:YYYY-MM-DD`.
+They refresh at the same interval as lists and retain cached menus for offline
+viewing. Demo menus stay on the device at `fd:demo:menu:YYYY-MM-DD`. As with lists,
+KV propagation can delay visibility and simultaneous writes to the same week can
+overwrite each other. Menu backups can be made by securely copying their KV values.
+
+Deploy the updated `worker/worker.js` **before** the frontend to enable the
+new authenticated `GET /menu/YYYY-MM-DD` and `POST /menu/YYYY-MM-DD` endpoints.
+No additional secrets or bindings are needed. Frontend deployment remains the
+existing GitHub Pages workflow; Worker deployment remains a separate step.
+
 ## Clock and weather
 
 The clock shows Madrid time with seconds, the weekday, and the full date.
