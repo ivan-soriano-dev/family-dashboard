@@ -1,66 +1,66 @@
 <div class="panel-head">
   <h2 id="agenda-heading" class="panel-title">{{ text.calendar }}</h2>
   @if (calendar.failed()) {
-    <span class="panel-count">{{ text.calendarError }}</span>
+  <span class="panel-count">{{ text.calendarError }}</span>
   }
 </div>
 
 <div class="panel-body">
   @if (calendar.loading()) {
-    <p class="empty-note">{{ text.loadingCalendar }}</p>
-  }
-
-  @for (day of calendar.days(); track day.date.getTime(); let first = $first) {
-    <section
-      class="px-2.5 pb-2.5 wall:px-[0.8vw] wall:pb-[1.2vh]"
-      [class]="first ? 'pt-1.5 wall:pt-[0.8vh]' : 'border-t border-line pt-3 wall:pt-[1.4vh]'"
-    >
-      <h3
-        class="mb-1.5 text-[15px] font-semibold wall:mb-[0.6vh] wall:text-[2.3vh]"
-        [class]="
+  <p class="empty-note">{{ text.loadingCalendar }}</p>
+  } @for (day of calendar.days(); track day.date.getTime(); let first = $first)
+  {
+  <section
+    class="px-2.5 pb-2.5 wall:px-[0.8vw] wall:pb-[1.2vh]"
+    [class]="first ? 'pt-1.5 wall:pt-[0.8vh]' : 'border-t border-line pt-3 wall:pt-[1.4vh]'"
+  >
+    <h3
+      class="mb-1.5 text-[15px] font-semibold wall:mb-[0.6vh] wall:text-[2.3vh]"
+      [class]="
           day.offset === 0
             ? 'inline-block rounded-full bg-primary px-2.5 py-0.5 text-on-primary wall:px-[0.7vw]'
             : 'text-fg-2'
         "
-      >
-        {{ dayName(day) }}
-      </h3>
+    >
+      {{ dayName(day) }}
+    </h3>
 
-      @for (row of day.rows; track $index) {
-        <div
-          class="flex py-[5px] text-base wall:py-[0.6vh] wall:text-[2.5vh]"
-          [class.opacity-40]="row.state === 'past'"
-        >
-          <div
-            class="w-[4.6em] shrink-0 tabular-nums"
-            [class]="
+    @for (row of day.rows; track $index) {
+    <div
+      class="agenda-event my-2 flex rounded-lg px-2 py-[5px] text-base wall:py-[0.6vh] wall:text-[2.5vh]"
+      [style.--event-color]="row.event.color"
+      [class.opacity-40]="row.state === 'past'"
+    >
+      <div
+        class="w-[4.6em] shrink-0 tabular-nums"
+        [class]="
               row.state === 'now'
                 ? 'font-semibold text-accent'
                 : row.event.allDay
                   ? 'text-accent'
                   : 'text-fg-3'
             "
-          >
-            {{ time(row) }}
-          </div>
-          <div class="min-w-0">
-            <div class="wrap-anywhere" [class.font-semibold]="row.state === 'now'">
-              {{ row.event.title }}
-            </div>
-            @if (row.event.location) {
-              <div class="truncate text-[13px] text-fg-4 wall:text-[1.9vh]">
-                {{ row.event.location.split('\n')[0] }}
-              </div>
-            }
-          </div>
+      >
+        {{ time(row) }}
+      </div>
+      <div class="min-w-0">
+        <div class="wrap-anywhere" [class.font-semibold]="row.state === 'now'">
+          {{ row.event.title }}
         </div>
-      } @empty {
-        <p class="py-0.5 text-[15px] text-fg-4 wall:text-[2.3vh]">{{ text.nothingToday }}</p>
-      }
-    </section>
-  }
-
-  @if (calendar.isEmpty()) {
-    <p class="empty-note">{{ text.noEvents }}</p>
+        @if (row.event.location) {
+        <div class="truncate text-[13px] text-fg-4 wall:text-[1.9vh]">
+          {{ row.event.location.split('\n')[0] }}
+        </div>
+        }
+      </div>
+    </div>
+    } @empty {
+    <p class="py-0.5 text-[15px] text-fg-4 wall:text-[2.3vh]">
+      {{ text.nothingToday }}
+    </p>
+    }
+  </section>
+  } @if (calendar.isEmpty()) {
+  <p class="empty-note">{{ text.noEvents }}</p>
   }
 </div>
