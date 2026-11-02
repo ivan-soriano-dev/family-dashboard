@@ -5,7 +5,8 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "test": "ng test --watch=false",
+    "test": "ng test --watch=false && npm run test:worker",
+    "test:worker": "node --test worker/worker.test.mjs",
     "test:watch": "ng test"
   },
   "private": true,

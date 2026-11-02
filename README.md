@@ -1,6 +1,6 @@
 # Family Dashboard
 
-A shared calendar, to-do list, and shopping list for phones and a wall display.
+Shared calendars, a to-do list, and a shopping list for phones and a wall display.
 The Angular frontend runs on GitHub Pages; a Cloudflare Worker accesses the
 calendar and stores shared lists in Cloudflare KV.
 
@@ -25,16 +25,42 @@ select **family-dashboard**. Menu paths below start from that Worker.
 | `DATA` (KV binding) | **Settings → Bindings → DATA → pencil icon**; **Add binding → KV namespace** if missing. | Connects the Worker to the namespace holding shared data. |
 | `FAMILY_TOKEN` (secret) | **Settings → Runtime variables and secrets → FAMILY_TOKEN → pencil icon**; **Add variable** if missing, with type **Secret**. | Shared password required to read the calendar and read or change lists. Existing secret values are hidden; replace them to change them. |
 | `ICLOUD_ICS_URL` (secret) | **Settings → Runtime variables and secrets → ICLOUD_ICS_URL → pencil icon**; **Add variable** if missing, with type **Secret**. | Public iCloud calendar subscription link. |
+| `ICLOUD_ICS_URL_2` (secret; optional) | **Settings → Runtime variables and secrets → Add variable**, type **Secret**. | Second calendar subscription link. Add `_3`, `_4`, etc. for more calendars. |
 | `ALLOWED_ORIGIN` (variable) | **Settings → Runtime variables and secrets → ALLOWED_ORIGIN → pencil icon**; **Add variable** if missing, with type **Text**. | Frontend origin, such as `https://<username>.github.io`, without the repository path or trailing slash. This is a browser restriction, not authentication. |
 
 ![Cloudflare Settings: runtime variables and secrets, edit buttons, and DATA binding; values redacted](docs/images/cloudflare-settings-redacted.png)
 
-The screenshot shows the navigation; store `FAMILY_TOKEN` and `ICLOUD_ICS_URL` as
+The screenshot shows the navigation; store `FAMILY_TOKEN` and all `ICLOUD_ICS_URL` links as
 **Secret**, rather than the plain **Variable** type shown. Some dashboard versions
 label the section **Variables and Secrets** or provide a separate **Bindings** tab.
 
 Find the Worker address under **Settings → Domains & Routes**; use it as
 `workerUrl` in `src/app/settings.ts`. Save or deploy changes when prompted.
+
+## Multiple shared calendars
+
+The agenda combines all configured calendars in chronological order. Events keep
+an event-specific colour when supplied, otherwise the calendar colour from its
+feed is used for the shadow. Feeds without colours use the dashboard theme colour.
+Each feed is parsed separately, so matching event IDs across calendars do not
+replace each other. Events appearing in both calendars are displayed twice.
+
+For an existing installation:
+
+1. Deploy the updated [`worker/worker.js`](worker/worker.js) first using **Edit code → Deploy**.
+   The old `/calendar` endpoint still serves the first calendar for older app versions.
+2. Keep the existing `ICLOUD_ICS_URL` secret. Add a **Secret** named
+   `ICLOUD_ICS_URL_2` with the second calendar's public subscription link, then save/deploy.
+   There is no new API key or family token to create. Never paste real links into Git or chat.
+3. Deploy the updated frontend through the existing GitHub Pages workflow and reload
+   the dashboard. No frontend setting needs to change when adding more calendars.
+
+The frontend uses the authenticated `/calendars` endpoint. Each feed has its own
+15-minute Worker cache and all feeds are saved together on each device for offline
+use. If a feed fails, the Worker serves its last cached copy when available; the
+other feeds remain visible. The calendar error label indicates missing or stale
+feeds. A total refresh failure keeps the previous local agenda. Cache keys contain
+hashes, not subscription links, and a replacement link never reuses an old feed's cache.
 
 ## Clock and weather
 
@@ -60,8 +86,8 @@ registration for an API key.
 | Location | Contents |
 |---|---|
 | iCloud Calendar | Original calendar events; edit them in Apple Calendar. |
-| [Cloudflare KV](https://dash.cloudflare.com/?to=/:account/workers/kv/namespaces), bound as `DATA` | `list:todo` and `list:groceries` hold shared lists. `cache:calendar` holds the last fetched calendar, refreshed after 15 minutes when requested. |
-| Each browser’s `localStorage` | `fd:token` stores the password; `fd:list:todo`, `fd:list:groceries`, and `fd:ics` store local copies. Demo data uses `fd:demo:…`. |
+| [Cloudflare KV](https://dash.cloudflare.com/?to=/:account/workers/kv/namespaces), bound as `DATA` | `list:todo` and `list:groceries` hold shared lists. `cache:calendar:<hash>` holds each fetched calendar separately, refreshed after 15 minutes when requested and expired after 30 days without a successful fetch. Old `cache:calendar` entries are no longer used. |
+| Each browser’s `localStorage` | `fd:token` stores the password; `fd:list:todo`, `fd:list:groceries`, and `fd:calendars` store local copies. The old `fd:ics` copy remains usable during the first offline upgrade. Demo data uses `fd:demo:…`. |
 
 To view or edit stored data, open **Storage & databases → Workers KV →
 family-dashboard-data → KV Pairs** (or the namespace bound as `DATA` if renamed).
@@ -112,7 +138,7 @@ See [`docs/setup-guide-en.md`](docs/setup-guide-en.md) for initial setup.
 | Task or symptom | Action |
 |---|---|
 | Rotate the shared password | Replace `FAMILY_TOKEN` in Cloudflare, then enter the new token on each device when prompted. Keep a copy in a password manager. |
-| Change the calendar | Replace `ICLOUD_ICS_URL` in Cloudflare. Delete `cache:calendar` from KV to force a fresh fetch on the next request. Existing browser copies may remain until refreshed. |
+| Add, replace, or remove a calendar | Edit the `ICLOUD_ICS_URL`, `ICLOUD_ICS_URL_2`, etc. secrets in Cloudflare, then reload the dashboard. A changed link gets a new cache automatically; removed secrets disappear on the next successful refresh. Existing browser copies remain available offline. |
 | Token repeatedly rejected | Check the entered value against the configured `FAMILY_TOKEN`; replace the secret if needed. |
 | Offline or stale data | Check `workerUrl`, Worker availability, `DATA`, and `ALLOWED_ORIGIN`. For calendar problems, check that the iCloud public link still works. |
 | Demo data on the published site | Set `workerUrl`, rebuild, and deploy the frontend. |

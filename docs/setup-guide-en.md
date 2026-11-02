@@ -1,7 +1,7 @@
 # Setup guide
 
 From nothing to a working dashboard: about 30–40 minutes. For what each part is and
-how to maintain it, see the [README](../README.md) (Spanish).
+how to maintain it, see the [README](../README.md).
 
 You need:
 - a GitHub account (personal),
@@ -18,7 +18,8 @@ Public Calendar → Share Link → Copy**. On a Mac: right-click the calendar �
 **Sharing Settings… → Public Calendar**.
 
 The link starts with `webcal://`. Keep it private: anyone with it can read the
-calendar. It is only ever stored as a secret in Cloudflare.
+calendar. It is only ever stored as a secret in Cloudflare. Repeat this for each
+calendar you want to display; each calendar needs its own public subscription link.
 
 If the switch doesn't appear for the Family Sharing calendar, create a new shared
 calendar and share it with the family instead.
@@ -43,6 +44,7 @@ A long random password, for example from a password manager: `k7Qp-2mWx-9fTz-Lr4
      | Type   | Name             | Value                                    |
      |--------|------------------|------------------------------------------|
      | Secret | `ICLOUD_ICS_URL` | the `webcal://…` link from step 1        |
+     | Secret | `ICLOUD_ICS_URL_2` | second calendar link (optional; use `_3`, `_4`, etc. for more) |
      | Secret | `FAMILY_TOKEN`   | the token from step 2                    |
      | Text   | `ALLOWED_ORIGIN` | `https://YOUR-GITHUB-USERNAME.github.io` |
 

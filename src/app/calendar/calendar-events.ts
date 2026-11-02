@@ -11,6 +11,31 @@ export interface CalendarEvent {
   color?: string;
 }
 
+export interface CalendarFeeds {
+  calendars: { id: string; ics: string; stale: boolean }[];
+  unavailable: string[];
+}
+
+/** Expand each feed separately so matching UIDs and time zones cannot mix calendars. */
+export function expandCalendars(feeds: CalendarFeeds, from: Date, to: Date) {
+  const events: CalendarEvent[] = [];
+  let failed = feeds.unavailable.length > 0;
+  for (const feed of feeds.calendars) {
+    failed ||= feed.stale;
+    try {
+      events.push(...expandEvents(feed.ics, from, to));
+    } catch {
+      failed = true;
+    }
+  }
+  events.sort(
+    (a, b) =>
+      a.start.getTime() - b.start.getTime() ||
+      Number(b.allDay) - Number(a.allDay),
+  );
+  return { events, failed };
+}
+
 export type EventState = "past" | "now" | "later";
 
 export interface AgendaRow {

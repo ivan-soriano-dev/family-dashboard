@@ -1,4 +1,4 @@
-import { expandEvents, groupByDay } from "./calendar-events";
+import { expandCalendars, expandEvents, groupByDay } from "./calendar-events";
 
 // Weekly event with a skipped (EXDATE) and a moved (RECURRENCE-ID) occurrence,
 // a 3-day all-day event and an old one-off event, in the Europe/Madrid time zone.
@@ -113,6 +113,81 @@ describe("expandEvents", () => {
         (event) => event.color === undefined,
       ),
     ).toBe(true);
+  });
+});
+
+describe("expandCalendars", () => {
+  const from = new Date(2026, 10, 2);
+  const to = new Date(2026, 10, 12);
+
+  it("combines calendars while keeping identical UIDs and colours separate", () => {
+    const result = expandCalendars(
+      {
+        calendars: [
+          {
+            id: "1",
+            stale: false,
+            ics: ICS.replace("VERSION:2.0", "VERSION:2.0\nCOLOR:red"),
+          },
+          {
+            id: "2",
+            stale: false,
+            ics: ICS.replace("VERSION:2.0", "VERSION:2.0\nCOLOR:blue"),
+          },
+        ],
+        unavailable: [],
+      },
+      from,
+      to,
+    );
+    expect(result.failed).toBe(false);
+    expect(result.events).toHaveLength(8);
+    expect(result.events.map((event) => event.color)).toEqual([
+      "red",
+      "blue",
+      "red",
+      "blue",
+      "red",
+      "blue",
+      "red",
+      "blue",
+    ]);
+    expect(groupByDay(result.events, from, 10, from)[0].rows).toHaveLength(2);
+  });
+
+  it("keeps healthy events when another feed is malformed, unavailable or stale", () => {
+    const result = expandCalendars(
+      {
+        calendars: [
+          { id: "1", stale: true, ics: ICS },
+          { id: "2", stale: false, ics: "invalid calendar" },
+        ],
+        unavailable: ["3"],
+      },
+      from,
+      to,
+    );
+    expect(result.failed).toBe(true);
+    expect(result.events).toHaveLength(4);
+  });
+
+  it("treats empty calendars as a successful result", () => {
+    expect(
+      expandCalendars(
+        {
+          calendars: [
+            {
+              id: "1",
+              stale: false,
+              ics: "BEGIN:VCALENDAR\nVERSION:2.0\nEND:VCALENDAR",
+            },
+          ],
+          unavailable: [],
+        },
+        from,
+        to,
+      ),
+    ).toEqual({ events: [], failed: false });
   });
 });
 

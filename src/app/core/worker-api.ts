@@ -5,6 +5,7 @@ import { APP_SETTINGS } from '../settings';
 import type { ListChange, ListData, ListName } from '../lists/list-model';
 import { FamilyToken } from './family-token';
 import { SyncStatus } from './sync-status';
+import type { CalendarFeeds } from '../calendar/calendar-events';
 
 const TIMEOUT_MS = 15_000;
 
@@ -19,8 +20,8 @@ export class WorkerApi {
   private readonly status = inject(SyncStatus);
   private readonly base = inject(APP_SETTINGS).workerUrl.replace(/\/+$/, '');
 
-  calendar(): Promise<string> {
-    return this.run(this.http.get(`${this.base}/calendar`, { responseType: 'text' }));
+  calendars(): Promise<CalendarFeeds> {
+    return this.run(this.http.get<CalendarFeeds>(`${this.base}/calendars`));
   }
 
   list(name: ListName): Promise<ListData> {

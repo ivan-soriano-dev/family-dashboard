@@ -17,15 +17,16 @@ import { WorkerApi } from '../core/worker-api';
 import {
   AgendaDay,
   CalendarEvent,
+  CalendarFeeds,
   addDays,
   demoEvents,
-  expandEvents,
+  expandCalendars,
   groupByDay,
 } from './calendar-events';
 
-type Expanded = { ok: true; events: CalendarEvent[] } | { ok: false };
+type Expanded = { events: CalendarEvent[]; failed: boolean };
 
-/** The family calendar: downloads the .ics through the Worker and turns it into days to show. */
+/** Downloads shared calendars through the Worker and combines their events into one agenda. */
 @Injectable({ providedIn: 'root' })
 export class CalendarStore {
   private readonly api = inject(WorkerApi);
@@ -36,39 +37,39 @@ export class CalendarStore {
   private readonly demo = inject(DisplayMode).demo;
   private readonly document = inject(DOCUMENT);
 
-  /** Raw .ics text (cached on the device so something shows while offline). */
-  private readonly ics = signal<string | null>(this.demo ? null : this.store.getText('ics'));
+  private readonly feeds = signal<CalendarFeeds | null>(this.demo ? null : this.savedFeeds());
+  private readonly refreshFailed = signal(false);
+
+  private savedFeeds(): CalendarFeeds | null {
+    const saved = this.store.getJson<CalendarFeeds>('calendars');
+    if (saved && Array.isArray(saved.calendars) && Array.isArray(saved.unavailable)) return saved;
+    // Keep the old single-calendar copy visible during the first upgrade/offline load.
+    const legacy = this.store.getText('ics');
+    return legacy ? { calendars: [{ id: '1', ics: legacy, stale: false }], unavailable: [] } : null;
+  }
 
   /** Recomputed only when the feed or the day changes. */
   private readonly expanded = computed<Expanded | null>(() => {
     const today = this.clock.today();
-    if (this.demo) return { ok: true, events: demoEvents(today) };
-    const ics = this.ics();
-    if (!ics) return null;
-    try {
-      return {
-        ok: true,
-        events: expandEvents(ics, today, addDays(today, this.settings.daysAhead)),
-      };
-    } catch (e) {
-      console.error('Could not read the calendar', e);
-      return { ok: false };
-    }
+    if (this.demo) return { events: demoEvents(today), failed: false };
+    const feeds = this.feeds();
+    if (!feeds) return null;
+    return expandCalendars(feeds, today, addDays(today, this.settings.daysAhead));
   });
 
-  readonly loading = computed(() => this.expanded() === null);
-  readonly failed = computed(() => this.expanded()?.ok === false);
+  readonly loading = computed(() => this.expanded() === null && !this.refreshFailed());
+  readonly failed = computed(() => this.refreshFailed() || !!this.expanded()?.failed);
 
   /** Recomputed every minute, so finished events dim and the current one is highlighted. */
   readonly days = computed<AgendaDay[]>(() => {
     const result = this.expanded();
-    if (!result?.ok) return [];
+    if (!result) return [];
     return groupByDay(result.events, this.clock.today(), this.settings.daysAhead, this.clock.now());
   });
 
   readonly isEmpty = computed(() => {
     const result = this.expanded();
-    return !!result?.ok && result.events.length === 0;
+    return !!result && !this.failed() && result.events.length === 0;
   });
 
   constructor() {
@@ -93,10 +94,12 @@ export class CalendarStore {
   async refresh(): Promise<void> {
     if (this.demo || !this.token.value()) return;
     try {
-      const text = await this.api.calendar();
-      this.ics.set(text);
-      this.store.set('ics', text);
+      const feeds = await this.api.calendars();
+      this.feeds.set(feeds);
+      this.store.set('calendars', feeds);
+      this.refreshFailed.set(false);
     } catch {
+      this.refreshFailed.set(true);
       /* offline: keep the saved copy */
     }
   }

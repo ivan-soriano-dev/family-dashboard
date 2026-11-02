@@ -13,4 +13,5 @@ id = "PASTE-YOUR-KV-NAMESPACE-ID-HERE"
 
 # Secrets are NOT stored here. Set them with:
 #   npx wrangler secret put ICLOUD_ICS_URL
+#   npx wrangler secret put ICLOUD_ICS_URL_2  # Optional second calendar; _3, _4, etc.
 #   npx wrangler secret put FAMILY_TOKEN

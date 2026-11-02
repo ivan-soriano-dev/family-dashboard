@@ -2,6 +2,7 @@
  * Family Dashboard – Cloudflare Worker
  *
  *   GET  /calendar          -> the iCloud calendar (.ics), with CORS, cached 15 min
+ *   GET  /calendars         -> { calendars: [{ id, ics, stale }], unavailable: [id] }
  *   GET  /lists/todo        -> { items: [...], updated: 1730000000000 }
  *   POST /lists/todo        -> apply one change, returns the new list
  *                              { op: add | toggle | edit | delete | clearDone | clear }
@@ -11,13 +12,13 @@
  *
  * Settings (Cloudflare dashboard > Worker > Settings):
  *   Secret    ICLOUD_ICS_URL   your public iCloud calendar link (webcal:// or https://)
+ *   Secret    ICLOUD_ICS_URL_2 second link; add _3, _4, etc. for more calendars
  *   Secret    FAMILY_TOKEN     a long random password shared by the family
  *   Variable  ALLOWED_ORIGIN   e.g. https://yourname.github.io   (optional, "*" if empty)
  *   KV        DATA             a KV namespace binding
  */
 
 var LISTS = ['todo', 'groceries'];
-var CAL_KEY = 'cache:calendar';
 var CAL_TTL_MS = 15 * 60 * 1000;
 var MAX_ITEMS = 300;
 var MAX_TEXT = 200;
@@ -35,6 +36,7 @@ export default {
 
     try {
       if (path === '/calendar' && request.method === 'GET') return await calendar(env, cors);
+      if (path === '/calendars' && request.method === 'GET') return await calendars(env, cors);
 
       var m = path.match(/^\/lists\/([a-z]+)$/);
       if (m && LISTS.indexOf(m[1]) !== -1) {
@@ -55,21 +57,71 @@ export default {
 
 async function calendar(env, cors) {
   if (!env.ICLOUD_ICS_URL) return json({ error: 'ICLOUD_ICS_URL is not set' }, 500, cors);
-
-  var cached = await env.DATA.get(CAL_KEY, 'json');
-  if (cached && Date.now() - cached.at < CAL_TTL_MS) return ics(cached.body, cors, 'hit');
-
-  var url = env.ICLOUD_ICS_URL.trim().replace(/^webcal:\/\//i, 'https://');
-  var res = await fetch(url, { headers: { 'User-Agent': 'FamilyDashboard/1.0', 'Accept': 'text/calendar' } });
-  var body = res.ok ? await res.text() : '';
-
-  if (body.indexOf('BEGIN:VCALENDAR') === -1) {
-    // iCloud hiccup: keep showing the last good copy if there is one
-    if (cached) return ics(cached.body, cors, 'stale');
-    return json({ error: 'iCloud returned ' + res.status + '. Check that the calendar is still public.' }, 502, cors);
+  try {
+    var result = await readCalendar(env, env.ICLOUD_ICS_URL);
+    return ics(result.body, cors, result.state);
+  } catch {
+    return json({ error: 'Calendar unavailable. Check that the calendar is still public.' }, 502, cors);
   }
-  await env.DATA.put(CAL_KEY, JSON.stringify({ at: Date.now(), body: body }));
-  return ics(body, cors, 'miss');
+}
+
+async function calendars(env, cors) {
+  var keys = Object.keys(env).filter(function (key) {
+    return /^ICLOUD_ICS_URL(?:_[2-9]|_[1-9]\d+)?$/.test(key) &&
+      typeof env[key] === 'string' && env[key].trim();
+  }).sort(function (a, b) {
+    return (Number(a.replace('ICLOUD_ICS_URL_', '')) || 1) -
+      (Number(b.replace('ICLOUD_ICS_URL_', '')) || 1);
+  });
+  if (!keys.length) return json({ error: 'No calendar links configured' }, 500, cors);
+
+  var results = await Promise.all(keys.map(async function (key) {
+    var id = key === 'ICLOUD_ICS_URL' ? '1' : key.slice('ICLOUD_ICS_URL_'.length);
+    try {
+      var result = await readCalendar(env, env[key]);
+      return { id: id, ics: result.body, stale: result.state === 'stale' };
+    } catch {
+      return { id: id };
+    }
+  }));
+  var available = results.filter(function (result) { return result.ics !== undefined; });
+  return json({
+    calendars: available,
+    unavailable: results.filter(function (result) { return result.ics === undefined; })
+      .map(function (result) { return result.id; })
+  }, available.length ? 200 : 502, cors);
+}
+
+async function readCalendar(env, link) {
+  var url = link.trim().replace(/^webcal:\/\//i, 'https://');
+  if (new URL(url).protocol !== 'https:') throw new Error('Calendar links must use HTTPS');
+  // Changing a link must never reuse a different calendar's cached contents.
+  var digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(url));
+  var hash = Array.from(new Uint8Array(digest), function (byte) {
+    return byte.toString(16).padStart(2, '0');
+  }).join('');
+  var cacheKey = 'cache:calendar:' + hash;
+  var cached = await env.DATA.get(cacheKey, 'json');
+  if (cached && Date.now() - cached.at < CAL_TTL_MS) return { body: cached.body, state: 'hit' };
+
+  try {
+    var res = await fetch(url, {
+      headers: { 'User-Agent': 'FamilyDashboard/1.0', 'Accept': 'text/calendar' },
+      signal: AbortSignal.timeout(10_000)
+    });
+    var body = res.ok ? await res.text() : '';
+    if (!/^BEGIN:VCALENDAR\s*$/m.test(body) || !/^END:VCALENDAR\s*$/m.test(body)) {
+      throw new Error('Invalid calendar response');
+    }
+  } catch {
+    if (cached) return { body: cached.body, state: 'stale' };
+    throw new Error('Calendar unavailable');
+  }
+  // A cache write failure should not hide freshly downloaded events.
+  await env.DATA.put(cacheKey, JSON.stringify({ at: Date.now(), body: body }), {
+    expirationTtl: 30 * 24 * 60 * 60
+  }).catch(function () {});
+  return { body: body, state: 'miss' };
 }
 
 function ics(body, cors, state) {
