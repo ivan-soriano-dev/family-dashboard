@@ -39,9 +39,10 @@ Find the Worker address under **Settings → Domains & Routes**; use it as
 
 ## Multiple shared calendars
 
-The agenda combines all configured calendars in chronological order. Events keep
-an event-specific colour when supplied, otherwise the calendar colour from its
-feed is used for the shadow. Feeds without colours use the dashboard theme colour.
+The agenda combines all configured calendars in chronological order. Each item box uses
+the source calendar colour from its feed for a solid left bar and a pale tinted
+background. If the feed has no calendar colour, the event colour is used, then the
+dashboard theme colour as a final fallback. Items have no shadow.
 Each feed is parsed separately, so matching event IDs across calendars do not
 replace each other. Events appearing in both calendars are displayed twice.
 

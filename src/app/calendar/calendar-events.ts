@@ -7,7 +7,7 @@ export interface CalendarEvent {
   end: Date;
   allDay: boolean;
   location: string;
-  /** Event colour, falling back to the shared calendar's colour when provided. */
+  /** Source calendar colour, falling back to the event colour when provided. */
   color?: string;
 }
 
@@ -132,9 +132,9 @@ export function expandEvents(
       allDay: start.isDate,
       location: event.location || "",
       color:
+        calendarColor ??
         componentColor(event.component) ??
-        (master && componentColor(master.component)) ??
-        calendarColor,
+        (master && componentColor(master.component)),
     });
   };
 

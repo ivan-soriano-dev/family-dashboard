@@ -81,7 +81,7 @@ describe("expandEvents", () => {
     const colored = ICS.replace(
       "VERSION:2.0",
       "VERSION:2.0\nX-APPLE-CALENDAR-COLOR:#34C759FF",
-    );
+    ).replace("SUMMARY:Swimming\n", "SUMMARY:Swimming\nCOLOR:red\n");
     expect(expandEvents(colored, from, to).map((event) => event.color)).toEqual(
       ["#34C759FF", "#34C759FF", "#34C759FF", "#34C759FF"],
     );
@@ -89,11 +89,11 @@ describe("expandEvents", () => {
 
   it("preserves event colours through repeats and moved occurrences", () => {
     const colored = ICS.replace(
-      "VERSION:2.0",
-      "VERSION:2.0\nCOLOR:blue",
-    ).replace("SUMMARY:Swimming\n", "SUMMARY:Swimming\nCOLOR:#ff9500\n");
+      "SUMMARY:Swimming\n",
+      "SUMMARY:Swimming\nCOLOR:#ff9500\n",
+    );
     expect(expandEvents(colored, from, to).map((event) => event.color)).toEqual(
-      ["#ff9500", "blue", "#ff9500", "#ff9500"],
+      ["#ff9500", undefined, "#ff9500", "#ff9500"],
     );
     const overridden = colored.replace(
       "SUMMARY:Swimming (moved)",

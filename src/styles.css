@@ -110,8 +110,10 @@
 }
 
 .agenda-event {
-  box-shadow: 0 2px 7px
-    color-mix(in srgb, var(--event-color, var(--primary)) 35%, transparent);
+  border-inline-start: 4px solid var(--event-color, var(--primary));
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  background-color: color-mix(in srgb, var(--event-color, var(--primary)) 12%, var(--bg-panel));
 }
 @utility field {
   @apply min-w-0 flex-auto rounded-lg border border-line-strong bg-page px-3.5 py-2.5 text-base outline-none placeholder:text-fg-4 focus:border-accent focus:ring-4 focus:ring-primary/40;

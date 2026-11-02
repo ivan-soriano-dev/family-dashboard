@@ -32,14 +32,8 @@
       [class.opacity-40]="row.state === 'past'"
     >
       <div
-        class="w-[4.6em] shrink-0 tabular-nums"
-        [class]="
-              row.state === 'now'
-                ? 'font-semibold text-accent'
-                : row.event.allDay
-                  ? 'text-accent'
-                  : 'text-fg-3'
-            "
+        class="w-[4.6em] shrink-0 text-fg-3 tabular-nums"
+        [class.font-semibold]="row.state === 'now'"
       >
         {{ time(row) }}
       </div>
@@ -48,7 +42,7 @@
           {{ row.event.title }}
         </div>
         @if (row.event.location) {
-        <div class="truncate text-[13px] text-fg-4 wall:text-[1.9vh]">
+        <div class="truncate text-[13px] text-fg-3 wall:text-[1.9vh]">
           {{ row.event.location.split('\n')[0] }}
         </div>
         }
