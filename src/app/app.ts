@@ -10,7 +10,8 @@ import { TokenDialog } from './shell/token-dialog';
 /**
  * Page layout.
  *  Phones: one column – clock, to do, groceries, calendar.
- *  Wide screens (frame): clock + calendar on the left, the two lists on the right.
+ *  Wide screens (frame): clock + tasks in the narrow left column, calendar in the
+ *  middle, and groceries on the right. The left column is 30% narrower than before.
  */
 @Component({
   selector: 'app-root',

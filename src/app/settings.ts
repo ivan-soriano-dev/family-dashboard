@@ -20,6 +20,15 @@ export const SETTINGS: Settings = {
   /** Date and time format, e.g. 'es-ES', 'fr-FR', 'en-US'. */
   locale: 'en-ES',
 
+  /** Weather for Loriguilla (CP 46393), using the free Open-Meteo API. */
+  weather: {
+    latitude: 39.49,
+    longitude: -0.57,
+    location: 'Loriguilla · 46393',
+    timeZone: 'Europe/Madrid',
+    refreshMinutes: 15,
+  },
+
   /** How many days the calendar shows. */
   daysAhead: 15,
 
@@ -73,6 +82,13 @@ export interface Settings {
   workerUrl: string;
   primaryColor: string;
   locale: string;
+  weather: {
+    latitude: number;
+    longitude: number;
+    location: string;
+    timeZone: string;
+    refreshMinutes: number;
+  };
   daysAhead: number;
   listRefreshSeconds: number;
   calendarRefreshMinutes: number;

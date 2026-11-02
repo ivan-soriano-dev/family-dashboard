@@ -1,12 +1,9 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 
-const sameMinute = (a: Date, b: Date) =>
-  Math.floor(a.getTime() / 60_000) === Math.floor(b.getTime() / 60_000);
-
-/** The current time as a signal, updated once per minute (checked every second). */
+/** The current time as a signal, updated every second. */
 @Injectable({ providedIn: 'root' })
 export class Clock {
-  private readonly tick = signal(new Date(), { equal: sameMinute });
+  private readonly tick = signal(new Date());
 
   readonly now = this.tick.asReadonly();
 

@@ -36,6 +36,25 @@ label the section **Variables and Secrets** or provide a separate **Bindings** t
 Find the Worker address under **Settings → Domains & Routes**; use it as
 `workerUrl` in `src/app/settings.ts`. Save or deploy changes when prompted.
 
+## Clock and weather
+
+The clock shows Madrid time with seconds, the weekday, and the full date.
+Weather is configured for **Loriguilla, CP 46393** (39.49, -0.57) in
+`settings.ts`: coordinates, display name, time zone, and refresh interval.
+The card shows the current temperature in Celsius and the next three hourly
+forecasts, refreshed every 15 minutes. Failed refreshes keep the last successful
+reading for the current session with a stale-data notice; an initial failure shows
+“Weather unavailable” and retries after one minute. When the provider returns an
+overload or rate-limit response, the card shows “Weather provider is busy”. Failed
+requests retry every minute; successful requests restore the 15-minute interval.
+
+Weather requests go directly to [Open-Meteo](https://open-meteo.com/en/docs),
+without the family token. Its API needs no key and is
+[free for personal, non-commercial use](https://open-meteo.com/en/terms).
+The card includes provider attribution. AEMET also provides
+[free OpenData](https://opendata.aemet.es/centrodedescargas/info), but requires
+registration for an API key.
+
 ## Storage and backups
 
 | Location | Contents |

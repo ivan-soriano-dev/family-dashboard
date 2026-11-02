@@ -1,13 +1,21 @@
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
 import { APP_SETTINGS, SETTINGS } from './settings';
+import { Weather } from './core/weather';
+import { signal } from '@angular/core';
 
 describe('App (demo mode)', () => {
   beforeEach(async () => {
     localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [{ provide: APP_SETTINGS, useValue: { ...SETTINGS, workerUrl: '' } }],
+      providers: [
+        { provide: APP_SETTINGS, useValue: { ...SETTINGS, workerUrl: '' } },
+        { provide: Weather, useValue: {
+          current: signal(null), loading: signal(false), location: SETTINGS.weather.location,
+          failureMessage: signal('Weather unavailable · retrying in a minute'),
+        } },
+      ],
     }).compileComponents();
   });
 
@@ -15,11 +23,11 @@ describe('App (demo mode)', () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('To do');
-    expect(el.textContent).toContain('Groceries');
+    expect(el.textContent).toContain(SETTINGS.text.todo);
+    expect(el.textContent).toContain(SETTINGS.text.groceries);
     expect(el.textContent).toContain('Milk');
-    expect(el.textContent).toContain('Calendar');
-    expect(el.textContent).toContain('Demo mode');
+    expect(el.textContent).toContain(SETTINGS.text.calendar);
+    expect(el.textContent).toContain(SETTINGS.text.demo);
   });
 
   it('adds and checks off an item', async () => {

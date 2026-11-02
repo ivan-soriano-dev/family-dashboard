@@ -1,0 +1,108 @@
+:host {
+  display: block;
+  min-width: 0;
+  container-type: inline-size;
+  padding: clamp(24px, 2.6vw, 42px);
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--line));
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--primary) 22%, var(--bg-panel));
+  box-shadow:
+    0 2px 6px color-mix(in srgb, var(--primary) 20%, transparent),
+    0 10px 28px color-mix(in srgb, var(--primary) 16%, transparent);
+}
+
+.clock-weekday {
+  color: var(--fg-4);
+  font-size: clamp(16px, 6.8cqw, 30px);
+  text-transform: uppercase;
+}
+
+.clock-time {
+  margin-top: 10px;
+  color: var(--fg);
+  font-size: 21.5cqw;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.065em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.clock-date {
+  margin-top: 12px;
+  color: var(--fg-4);
+  font-size: clamp(16px, 6.6cqw, 28px);
+}
+
+.weather { margin-top: clamp(24px, 9cqw, 40px); }
+
+.weather-current,
+.weather-hour {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.weather-current { padding-left: 12px; gap: 26px; }
+
+.weather-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  color: var(--fg-3);
+  font-size: 30px;
+  line-height: 1;
+}
+
+.weather-icon.sunny {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #f16e48;
+  font-size: 0;
+}
+
+.weather-condition { color: var(--fg-3); font-size: clamp(17px, 5.8cqw, 25px); }
+.weather-temperature {
+  color: var(--fg);
+  font-size: clamp(26px, 8cqw, 36px);
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.weather-hours {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.weather-hour { gap: 10px; min-width: 0; }
+.weather-hour .weather-icon { width: 20px; font-size: 22px; }
+.weather-hour .weather-icon.sunny { width: 18px; height: 18px; font-size: 0; }
+
+.weather-hour-time,
+.weather-hour-temperature {
+  font-size: clamp(12px, 4.5cqw, 19px);
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.weather-hour-time { color: var(--fg-4); }
+.weather-hour-temperature { color: var(--fg-3); }
+
+.weather-credit {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-top: 18px;
+  color: var(--fg-4);
+  font-size: 10px;
+}
+
+.weather-credit a { text-underline-offset: 2px; }
+.weather-credit a:hover { text-decoration: underline; }
+.weather-message { margin-top: 12px; color: var(--fg-4); font-size: 12px; }
