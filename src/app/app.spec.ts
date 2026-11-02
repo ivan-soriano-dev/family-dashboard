@@ -63,6 +63,39 @@ describe("App (demo mode)", () => {
     expect(el.textContent).toContain(SETTINGS.text.demo);
   });
 
+  it("toggles navigation and dismisses it with Escape, an outside click, or a selection", async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    const toggle = el.querySelector<HTMLButtonElement>(".nav-toggle")!;
+    const nav = el.querySelector<HTMLElement>(".site-nav")!;
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+
+    toggle.click();
+    await fixture.whenStable();
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(nav.classList.contains("is-open")).toBe(true);
+    nav.querySelector<HTMLAnchorElement>("a")!.focus();
+    nav.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+    await fixture.whenStable();
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(document.activeElement).toBe(toggle);
+
+    toggle.click();
+    await fixture.whenStable();
+    el.querySelector<HTMLButtonElement>(".nav-backdrop")!.click();
+    await fixture.whenStable();
+    expect(nav.classList.contains("is-open")).toBe(false);
+
+    toggle.click();
+    await fixture.whenStable();
+    await navigate(fixture, "menu");
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(el.querySelector(".nav-backdrop")).toBeNull();
+  });
+
   it("opens the full weekly menu, saves and edits a meal, and returns Home", async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();

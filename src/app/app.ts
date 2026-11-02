@@ -25,11 +25,14 @@ export class App {
   protected readonly page = signal(
     this.document.location.hash === "#menu" ? "menu" : "home",
   );
+  protected readonly navigationOpen = signal(false);
 
   constructor() {
     const view = this.document.defaultView;
-    const navigate = () =>
+    const navigate = () => {
       this.page.set(view?.location.hash === "#menu" ? "menu" : "home");
+      this.navigationOpen.set(false);
+    };
     view?.addEventListener("hashchange", navigate);
     inject(DestroyRef).onDestroy(() =>
       view?.removeEventListener("hashchange", navigate),

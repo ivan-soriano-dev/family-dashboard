@@ -66,7 +66,8 @@ hashes, not subscription links, and a replacement link never reuses an old feed'
 ## Weekly family menu
 
 Use the right-side **Home** link for the dashboard or the fork-and-knife **Menú**
-link for the meal planner. Each Monday–Sunday week has its own menu, with dinner
+link for the meal planner. On phones (below 640px), tap the hamburger button in the
+top-right corner to show these links. Each Monday–Sunday week has its own menu, with dinner
 on weekdays and lunch and dinner on Saturday and Sunday. The planner starts on
 the current week in the configured family time zone. Use the arrows for other
 weeks or **Esta semana** to return to the current week.

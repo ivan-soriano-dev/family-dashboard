@@ -48,6 +48,8 @@ export const SETTINGS: Settings = {
   /** Every word shown on screen. */
   text: {
     home: "Home",
+    openNavigation: "Abrir navegación",
+    closeNavigation: "Cerrar navegación",
     menu: "Menú",
     menuHelp: "Cena de lunes a viernes · Comida y cena el fin de semana",
     lunch: "Comida",
@@ -122,6 +124,8 @@ export interface Settings {
 
 export interface Texts {
   home: string;
+  openNavigation: string;
+  closeNavigation: string;
   menu: string;
   menuHelp: string;
   lunch: string;

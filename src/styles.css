@@ -126,7 +126,11 @@
   @apply rounded-lg bg-primary px-4 py-2.5 text-[15px] font-semibold text-on-primary hover:brightness-95;
 }
 
-/* Right-side navigation stays available on both pages and on small screens. */
+/* Right-side navigation on larger screens; a compact dropdown on phones. */
+.nav-toggle,
+.nav-backdrop {
+  display: none;
+}
 .site-content {
   min-height: 100%;
   padding-right: 76px;
@@ -169,6 +173,59 @@
 .site-nav svg {
   width: 25px;
   height: 25px;
+}
+@media (max-width: 639px) {
+  .site-content {
+    padding-right: 0;
+    padding-top: 64px;
+  }
+  .nav-toggle {
+    position: fixed;
+    top: calc(12px + env(safe-area-inset-top, 0px));
+    right: max(16px, env(safe-area-inset-right, 0px));
+    z-index: 7;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--bg-panel);
+    color: var(--fg);
+  }
+  .nav-toggle svg {
+    width: 24px;
+    height: 24px;
+  }
+  .nav-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    background: transparent;
+  }
+  .site-nav {
+    display: none;
+    top: calc(64px + env(safe-area-inset-top, 0px));
+    right: max(16px, env(safe-area-inset-right, 0px));
+    bottom: auto;
+    width: 180px;
+    gap: 4px;
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+    z-index: 6;
+  }
+  .site-nav.is-open {
+    display: flex;
+  }
+  .site-nav a {
+    flex-direction: row;
+    gap: 12px;
+    padding: 12px;
+    font-size: 15px;
+  }
 }
 .menu-main {
   padding: 24px 20px 56px;
