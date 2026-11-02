@@ -4,12 +4,12 @@
 /* ─── Theme colours ────────────────────────────────────────────────────────────
    The primary colour is set in src/app/settings.ts (primaryColor) and applied at
    startup. The four values below are only the defaults used for the very first
-   paint; they match #ecd8dc. Surfaces/text are plain colours for light and dark.  */
+   paint; they match #c8a2c8. Surfaces/text are plain colours for light and dark.  */
 :root {
-  --primary: rgb(236 216 220);
+  --primary: rgb(200 162 200);
   --on-primary: rgb(16 24 40);
-  --accent-light: rgb(174 88 105);
-  --accent-dark: rgb(236 216 220);
+  --accent-light: rgb(165 89 165);
+  --accent-dark: rgb(200 162 200);
 
   --bg-page: rgb(249 250 251);
   --bg-panel: rgb(255 255 255);

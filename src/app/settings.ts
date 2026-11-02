@@ -15,19 +15,19 @@ export const SETTINGS: Settings = {
    * automatically. Also update the two default values at the top of src/styles.css so the
    * very first paint uses the same colour.
    */
-  primaryColor: '#ecd8dc',
+  primaryColor: '#c8a2c8',
 
   /** Date and time format, e.g. 'es-ES', 'fr-FR', 'en-US'. */
   locale: 'en-ES',
 
   /** How many days the calendar shows. */
-  daysAhead: 7,
+  daysAhead: 15,
 
   /** How often the lists are re-checked (seconds). */
   listRefreshSeconds: 30,
 
   /** How often the calendar is re-checked (minutes). The Worker itself caches it for 15 minutes. */
-  calendarRefreshMinutes: 10,
+  calendarRefreshMinutes: 120,
 
   /** Full page reload on the photo frame (hours). 0 disables it. */
   frameReloadHours: 6,
@@ -37,35 +37,35 @@ export const SETTINGS: Settings = {
 
   /** Every word shown on screen. */
   text: {
-    calendar: 'Calendar',
-    todo: 'To do',
-    groceries: 'Groceries',
-    today: 'Today',
-    tomorrow: 'Tomorrow',
-    allDay: 'All day',
-    loadingCalendar: 'Loading the calendar…',
-    nothingToday: 'Nothing planned',
-    noEvents: 'Nothing in the next days',
-    calendarError: 'Calendar unavailable',
-    addTask: 'Add a task',
-    addItem: 'Add an item',
-    add: 'Add',
-    remove: 'Remove',
-    emptyTodo: 'Nothing to do',
-    emptyGroceries: 'Nothing to buy',
-    removeCompleted: 'Remove completed',
-    clearList: 'Clear list',
-    clearConfirm: 'Tap again to clear',
-    left: 'left',
-    updated: 'Updated',
-    offline: 'Offline, showing the last saved copy',
-    demo: 'Demo mode: set workerUrl in src/app/settings.ts',
-    tokenTitle: 'Enter the family token',
+    calendar: 'Calendario',
+    todo: 'Tareas',
+    groceries: 'Lista de la compra',
+    today: 'Hoy',
+    tomorrow: 'Mañana',
+    allDay: 'Todo el día',
+    loadingCalendar: 'Cargando el calendario…',
+    nothingToday: 'Nada previsto',
+    noEvents: 'No hay eventos en los próximos días',
+    calendarError: 'Calendario no disponible',
+    addTask: 'Añadir una tarea',
+    addItem: 'Añadir un artículo',
+    add: 'Añadir',
+    remove: 'Eliminar',
+    emptyTodo: 'Nada que hacer',
+    emptyGroceries: 'Nada que comprar',
+    removeCompleted: 'Eliminar completados',
+    clearList: 'Vaciar lista',
+    clearConfirm: 'Pulsa de nuevo para vaciar',
+    left: 'pendientes',
+    updated: 'Actualizado',
+    offline: 'Sin conexión, mostrando la última copia guardada',
+    demo: 'Modo de demostración: configura workerUrl en src/app/settings.ts',
+    tokenTitle: 'Introduce el token familiar',
     tokenHelp:
-      'It’s the password you saved in Cloudflare as FAMILY_TOKEN. This device remembers it.',
-    tokenPlaceholder: 'Family token',
-    tokenSave: 'Save',
-    tokenRejected: 'That token didn’t work. Check it and try again.',
+      'Es la contraseña que guardaste en Cloudflare como FAMILY_TOKEN. Este dispositivo la recuerda.',
+    tokenPlaceholder: 'Token familiar',
+    tokenSave: 'Guardar',
+    tokenRejected: 'El token no es válido. Revísalo e inténtalo de nuevo.',
   },
 };
 
