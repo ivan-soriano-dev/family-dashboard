@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Family</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%A0%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tailwind.css">
+
+<script>
+/* =====================================================================
+   THEME – change the primary colour here (any hex colour).
+   Readable text shades and the text colour on buttons are worked out
+   automatically, so one value is all you need. No rebuild required.
+   ===================================================================== */
+var THEME = {
+  primary: '#ecd8dc'
+};
+</script>
+
+<style>
+  /* Surface colours as "R G B" (used by the Tailwind colour names in tailwind.config.js) */
+  :root {
+    --bg-page: 249 250 251; --bg-panel: 255 255 255; --bg-hover: 242 244 247;
+    --line: 228 231 236; --line-strong: 208 213 221;
+    --fg: 16 24 40; --fg-2: 52 64 84; --fg-3: 71 84 103; --fg-4: 102 112 133;
+    --danger: 180 35 24;
+    --accent: var(--accent-light);
+    color-scheme: light;
+  }
+  .dark {
+    --bg-page: 12 17 29; --bg-panel: 16 24 40; --bg-hover: 29 41 57;
+    --line: 29 41 57; --line-strong: 52 64 84;
+    --fg: 249 250 251; --fg-2: 208 213 221; --fg-3: 152 162 179; --fg-4: 102 112 133;
+    --danger: 253 162 155;
+    --accent: var(--accent-dark);
+    color-scheme: dark;
+  }
+</style>
+
+<script>
+/* Builds the colour variables from THEME.primary and picks light/dark mode. */
+(function () {
+  var root = document.documentElement;
+  function hex(h) {
+    h = String(h).replace('#', '');
+    if (h.length === 3) h = h.replace(/(.)/g, '$1$1');
+    var n = parseInt(h, 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  function lin(v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
+  function lum(c) { return 0.2126 * lin(c[0]) + 0.7152 * lin(c[1]) + 0.0722 * lin(c[2]); }
+  function contrast(a, b) { var x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
+  function hsl(c) {
+    var r = c[0] / 255, g = c[1] / 255, b = c[2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+    var h = 0, s = 0, l = (mx + mn) / 2, d = mx - mn;
+    if (d) {
+      s = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
+      h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+      h /= 6;
+    }
+    return [h, s, l];
+  }
+  function rgb(h, s, l) {
+    function f(n) {
+      var k = (n + h * 12) % 12, a = s * Math.min(l, 1 - l);
+      return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))));
+    }
+    return [f(0), f(8), f(4)];
+  }
+  // keep the hue, move the lightness until it reads as text on that background (WCAG 4.5:1)
+  function ink(p, bg, darker) {
+    var x = hsl(p), s = x[1] < 0.05 ? x[1] : Math.max(x[1], 0.3); // greys stay grey
+    for (var i = 0; i <= 50; i++) {
+      var l = darker ? x[2] - (x[2] * i / 50) : x[2] + ((1 - x[2]) * i / 50);
+      var c = i ? rgb(x[0], s, l) : p;
+      if (contrast(c, bg) >= 4.5) return c;
+    }
+    return darker ? [0, 0, 0] : [255, 255, 255];
+  }
+  var p = hex(THEME.primary), black = [16, 24, 40], white = [255, 255, 255];
+  var set = function (k, c) { root.style.setProperty(k, c.join(' ')); };
+  set('--primary', p);
+  set('--on-primary', contrast(p, black) >= contrast(p, white) ? black : white);
+  set('--accent-light', ink(p, [255, 255, 255], true));
+  set('--accent-dark', ink(p, [16, 24, 40], false));
+  var meta = document.createElement('meta');
+  meta.name = 'theme-color'; meta.content = THEME.primary;
+  document.head.appendChild(meta);
+
+  var frame = /(^|[?&])mode=frame(&|$)/.test(location.search);
+  var prefersDark = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
+  if (frame) root.className += ' frame dark';            // the frame is always dark
+  else if (prefersDark) root.className += ' dark';       // phones follow their own setting
+})();
+</script>
+</head>
+
+<body class="h-full bg-page font-sans text-fg antialiased wall:overflow-hidden frame:cursor-none">
+
+<main id="board" class="flex min-h-full flex-col px-4 pb-8 pt-5 wall:h-full wall:flex-row wall:px-[2.4vw] wall:py-[3.2vh] frame:transition-transform frame:duration-[2000ms] motion-reduce:transition-none">
+
+  <!-- left column: clock + calendar (on phones its parts are reordered) -->
+  <div class="contents wall:mr-[2.4vw] wall:flex wall:min-w-0 wall:flex-[1.35_1_0%] wall:flex-col">
+    <section class="order-none mb-4 mt-1 wall:m-0" aria-label="Clock">
+      <div id="clock" class="text-[64px] font-light leading-none tracking-[-0.04em] tabular-nums wall:text-[19vh]">--:--</div>
+      <div id="date" class="mt-2.5 text-lg text-fg-3 wall:mt-[1.6vh] wall:text-[3.4vh]"></div>
+    </section>
+
+    <section class="panel order-3 mb-4 wall:mb-0 wall:mt-[3vh] wall:flex-auto" aria-labelledby="h-agenda">
+      <div class="panel-head"><h2 id="h-agenda" class="panel-title">Calendar</h2><span id="cal-note" class="panel-count"></span></div>
+      <div id="agenda" class="panel-body"><p class="px-3 pb-3.5 pt-2 text-[15px] text-fg-4">Loading the calendar…</p></div>
+    </section>
+  </div>
+
+  <section class="panel order-1 mb-4 wall:mb-0 wall:mr-[1.6vw] wall:min-w-0 wall:flex-1" aria-labelledby="h-todo">
+    <div class="panel-head"><h2 id="h-todo" class="panel-title">To do</h2><span id="count-todo" class="panel-count"></span></div>
+    <div class="panel-body"><ul id="list-todo"></ul></div>
+    <div id="actions-todo" class="frame:hidden" hidden>
+      <div class="flex items-center justify-between px-3 pb-2.5">
+        <button id="clearall-todo" type="button" class="rounded-lg px-2.5 py-1.5 text-sm text-fg-3 hover-hover:bg-hover hover-hover:text-danger"></button>
+        <button id="clear-todo" type="button" class="rounded-lg px-2.5 py-1.5 text-sm text-fg-3 hover-hover:bg-hover hover-hover:text-fg"></button>
+      </div>
+    </div>
+    <form data-list="todo" class="flex border-t border-line px-3 pb-3 pt-2.5 frame:hidden">
+      <input type="text" maxlength="200" placeholder="Add a task" aria-label="New task" autocomplete="off"
+        class="min-w-0 flex-auto rounded-lg border border-line-strong bg-page px-3.5 py-2.5 text-base outline-none placeholder:text-fg-4 focus:border-accent focus:ring-4 focus:ring-primary/40">
+      <button type="submit" class="ml-2 rounded-lg bg-primary px-4 py-2.5 text-[15px] font-semibold text-on-primary hover-hover:brightness-95">Add</button>
+    </form>
+  </section>
+
+  <section class="panel order-2 mb-4 wall:mb-0 wall:min-w-0 wall:flex-1" aria-labelledby="h-groceries">
+    <div class="panel-head"><h2 id="h-groceries" class="panel-title">Groceries</h2><span id="count-groceries" class="panel-count"></span></div>
+    <div class="panel-body"><ul id="list-groceries"></ul></div>
+    <div id="actions-groceries" class="frame:hidden" hidden>
+      <div class="flex items-center justify-between px-3 pb-2.5">
+        <button id="clearall-groceries" type="button" class="rounded-lg px-2.5 py-1.5 text-sm text-fg-3 hover-hover:bg-hover hover-hover:text-danger"></button>
+        <button id="clear-groceries" type="button" class="rounded-lg px-2.5 py-1.5 text-sm text-fg-3 hover-hover:bg-hover hover-hover:text-fg"></button>
+      </div>
+    </div>
+    <form data-list="groceries" class="flex border-t border-line px-3 pb-3 pt-2.5 frame:hidden">
+      <input type="text" maxlength="200" placeholder="Add an item" aria-label="New grocery item" autocomplete="off"
+        class="min-w-0 flex-auto rounded-lg border border-line-strong bg-page px-3.5 py-2.5 text-base outline-none placeholder:text-fg-4 focus:border-accent focus:ring-4 focus:ring-primary/40">
+      <button type="submit" class="ml-2 rounded-lg bg-primary px-4 py-2.5 text-[15px] font-semibold text-on-primary hover-hover:brightness-95">Add</button>
+    </form>
+  </section>
+</main>
+
+<div id="status" aria-live="polite" class="pointer-events-none px-4 pb-6 text-center text-xs text-fg-4 wall:fixed wall:bottom-2.5 wall:right-3.5 wall:p-0"></div>
+<div id="night" class="pointer-events-none fixed inset-0 z-[5] bg-black opacity-0 transition-opacity duration-[60s] motion-reduce:transition-none"></div>
+
+<div id="setup" class="fixed inset-0 z-10 hidden items-center justify-center bg-page p-6">
+  <div class="panel w-full max-w-[420px] p-6">
+    <h2 class="mb-1.5 text-xl font-semibold">Enter the family token</h2>
+    <p class="mb-4 text-[15px] text-fg-3">It’s the password you saved in Cloudflare as FAMILY_TOKEN. This device remembers it.</p>
+    <form id="setup-form" class="flex">
+      <input id="setup-token" type="password" placeholder="Family token" aria-label="Family token" autocomplete="off"
+        class="min-w-0 flex-auto rounded-lg border border-line-strong bg-page px-3.5 py-2.5 text-base outline-none placeholder:text-fg-4 focus:border-accent focus:ring-4 focus:ring-primary/40">
+      <button type="submit" class="ml-2 rounded-lg bg-primary px-4 py-2.5 text-[15px] font-semibold text-on-primary hover-hover:brightness-95">Save</button>
+    </form>
+    <div id="setup-msg" class="mt-2.5 min-h-[1em] text-sm text-danger"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ical.js@1.5.0/build/ical.min.js"></script>
+<script>
+/* =====================================================================
+   SETTINGS – edit these
+   ===================================================================== */
+var CONFIG = {
+  // Your Cloudflare Worker address. Leave empty to run in demo mode.
+  WORKER_URL: 'https://family-dashboard.cuenta-familia-soriano-navarro.workers.dev/',
+
+  LOCALE: 'en-ES',            // date/time format, e.g. 'es-ES', 'fr-FR', 'en-US'
+  DAYS_AHEAD: 7,              // how many days the calendar shows
+  LIST_REFRESH_SEC: 30,       // how often lists are re-checked
+  CALENDAR_REFRESH_MIN: 10,   // how often the calendar is re-checked
+  FRAME_RELOAD_HOURS: 6,      // full page reload on the frame (keeps old devices healthy)
+  NIGHT: { from: 23, to: 7, dim: 0.8 },  // frame only; set dim: 0 to disable
+
+  TEXT: {
+    today: 'Today', tomorrow: 'Tomorrow', allDay: 'All day',
+    nothingToday: 'Nothing planned', noEvents: 'Nothing in the next days',
+    emptyTodo: 'Nothing to do', emptyGroceries: 'Nothing to buy',
+    clearDone: 'Remove completed', clearAll: 'Clear list', clearConfirm: 'Tap again to clear', left: 'left',
+    offline: 'Offline, showing the last saved copy',
+    synced: 'Updated', demo: 'Demo mode: set WORKER_URL in index.html',
+    calError: 'Calendar unavailable'
+  }
+};
+
+/* =====================================================================
+   Tailwind class sets used by the script (kept here so they're easy to restyle)
+   ===================================================================== */
+var UI = {
+  day: 'px-2.5 pb-2.5 pt-1.5 wall:px-[0.8vw] wall:pb-[1.2vh] wall:pt-[0.8vh]',
+  dayNext: 'border-t border-line px-2.5 pb-2.5 pt-3 wall:px-[0.8vw] wall:pb-[1.2vh] wall:pt-[1.4vh]',
+  dayTitle: 'mb-1.5 text-[15px] font-semibold text-fg-2 wall:mb-[0.6vh] wall:text-[2.3vh]',
+  dayTitleToday: 'mb-1.5 inline-block rounded-full bg-primary px-2.5 py-0.5 text-[15px] font-semibold text-on-primary wall:mb-[0.6vh] wall:px-[0.7vw] wall:text-[2.3vh]',
+  ev: 'flex py-[5px] text-base wall:py-[0.6vh] wall:text-[2.5vh]',
+  evPast: 'flex py-[5px] text-base opacity-40 wall:py-[0.6vh] wall:text-[2.5vh]',
+  evTime: 'w-[4.6em] shrink-0 tabular-nums text-fg-3',
+  evTimeAccent: 'w-[4.6em] shrink-0 tabular-nums text-accent',
+  evTimeNow: 'w-[4.6em] shrink-0 tabular-nums font-semibold text-accent',
+  evTitle: 'text-fg [overflow-wrap:anywhere]',
+  evTitleNow: 'font-semibold text-fg [overflow-wrap:anywhere]',
+  evLoc: 'truncate text-[13px] text-fg-4 wall:text-[1.9vh]',
+  nothing: 'py-0.5 text-[15px] text-fg-4 wall:text-[2.3vh]',
+  empty: 'px-3 pb-3.5 pt-2 text-[15px] text-fg-4 wall:text-[2.3vh]',
+
+  item: 'flex items-center rounded-lg hover-hover:bg-hover',
+  tick: 'flex min-w-0 flex-auto items-center px-2.5 py-[9px] text-left text-[17px] wall:px-[0.8vw] wall:py-[1vh] wall:text-[2.6vh]',
+  box: 'mr-3 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-2 border-line-strong wall:h-[2.8vh] wall:w-[2.8vh]',
+  boxDone: 'mr-3 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-2 border-accent bg-primary text-on-primary wall:h-[2.8vh] wall:w-[2.8vh]',
+  label: 'min-w-0 [overflow-wrap:anywhere]',
+  labelDone: 'min-w-0 text-fg-4 line-through [overflow-wrap:anywhere]',
+  clearAll: 'rounded-lg px-2.5 py-1.5 text-sm text-fg-3 hover-hover:bg-hover hover-hover:text-danger',
+  clearAllArmed: 'rounded-lg bg-danger/10 px-2.5 py-1.5 text-sm font-semibold text-danger',
+  del: 'h-10 w-10 shrink-0 rounded-lg text-[22px] leading-none text-fg-4 hover-hover:text-danger frame:hidden',
+
+  status: 'pointer-events-none px-4 pb-6 text-center text-xs text-fg-4 wall:fixed wall:bottom-2.5 wall:right-3.5 wall:p-0',
+  statusBad: 'pointer-events-none px-4 pb-6 text-center text-xs text-danger wall:fixed wall:bottom-2.5 wall:right-3.5 wall:p-0',
+  setupShown: 'fixed inset-0 z-10 flex items-center justify-center bg-page p-6',
+  check: '<svg viewBox="0 0 16 16" class="h-3/5 w-3/5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg>'
+};
+
+/* =====================================================================
+   App (written in plain ES5 so older Android WebViews can run it)
+   ===================================================================== */
+(function () {
+  'use strict';
+  var T = CONFIG.TEXT;
+  var params = parseQuery(location.search);
+  var FRAME = params.mode === 'frame';
+  var DEMO = !CONFIG.WORKER_URL;
+  var LISTS = ['todo', 'groceries'];
+  var state = { todo: null, groceries: null, ics: null, pending: 0, lastOk: 0, offline: false };
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ---------- token (from #token=... once, then stored) ---------- */
+  var hashToken = (location.hash.match(/token=([^&]+)/) || [])[1];
+  if (hashToken) {
+    store('token', decodeURIComponent(hashToken));
+    if (history.replaceState) history.replaceState(null, '', location.pathname + location.search);
+  }
+  function token() { return load('token') || ''; }
+
+  /* ---------- storage helpers ---------- */
+  function store(k, v) { try { localStorage.setItem('fd:' + k, typeof v === 'string' ? v : JSON.stringify(v)); } catch (e) {} }
+  function load(k, json) {
+    try { var v = localStorage.getItem('fd:' + k); return json ? (v ? JSON.parse(v) : null) : v; }
+    catch (e) { return null; }
+  }
+  function parseQuery(q) {
+    var o = {};
+    q.replace(/^\?/, '').split('&').forEach(function (p) {
+      if (!p) return; var kv = p.split('='); o[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1] || '');
+    });
+    return o;
+  }
+
+  /* ---------- network ---------- */
+  function api(method, path, body) {
+    var opts = { method: method, headers: { 'X-Family-Token': token() } };
+    if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+    var req = fetch(CONFIG.WORKER_URL.replace(/\/+$/, '') + path, opts).then(function (r) {
+      if (r.status === 401) { showSetup('That token didn’t work. Check it and try again.'); throw new Error('auth'); }
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return path === '/calendar' ? r.text() : r.json();
+    });
+    var timeout = new Promise(function (_, reject) { setTimeout(function () { reject(new Error('timeout')); }, 15000); });
+    return Promise.race([req, timeout]).then(function (x) { ok(); return x; }, function (e) { fail(); throw e; });
+  }
+  function ok() { state.lastOk = Date.now(); state.offline = false; renderStatus(); }
+  function fail() { state.offline = true; renderStatus(); }
+
+  /* ---------- clock ---------- */
+  var two = function (n) { return (n < 10 ? '0' : '') + n; };
+  var hour12 = false;
+  try { hour12 = new Intl.DateTimeFormat(CONFIG.LOCALE, { hour: 'numeric' }).resolvedOptions().hour12 === true; } catch (e) {}
+  function fmtTime(d) {
+    if (!hour12) return two(d.getHours()) + ':' + two(d.getMinutes());
+    return d.toLocaleTimeString(CONFIG.LOCALE, { hour: 'numeric', minute: '2-digit' });
+  }
+  var lastMinute = -1;
+  function tick() {
+    var now = new Date();
+    if (now.getMinutes() === lastMinute) return;
+    lastMinute = now.getMinutes();
+    $('clock').innerHTML = escapeHtml(fmtTime(now)).replace(':', '<span class="text-accent">:</span>');
+    $('date').textContent = capital(now.toLocaleDateString(CONFIG.LOCALE, { weekday: 'long', day: 'numeric', month: 'long' }));
+    renderAgenda();
+    renderStatus();
+    if (FRAME) nightAndShift(now);
+  }
+
+  /* ---------- calendar ---------- */
+  var expandCache = { key: '', events: [] };
+
+  function loadCalendar() {
+    if (DEMO) { state.ics = 'demo'; renderAgenda(); return; }
+    if (!token()) return;
+    api('GET', '/calendar').then(function (text) {
+      state.ics = text; store('ics', text); expandCache.key = ''; renderAgenda();
+    }, function () {
+      if (!state.ics) { state.ics = load('ics'); renderAgenda(); }
+    });
+  }
+
+  function expandEvents(icsText, rangeStart, rangeEnd) {
+    var comp = new ICAL.Component(ICAL.parse(icsText));
+    comp.getAllSubcomponents('vtimezone').forEach(function (tz) {
+      try { ICAL.TimezoneService.register(tz); } catch (e) {}
+    });
+    var masters = {}, singles = [], exceptions = [], out = [];
+    comp.getAllSubcomponents('vevent').forEach(function (ve) {
+      if (ve.hasProperty('recurrence-id')) { exceptions.push(ve); return; }
+      var ev = new ICAL.Event(ve);
+      if (ev.isRecurring()) masters[ev.uid] = ev; else singles.push(ev);
+    });
+    exceptions.forEach(function (ve) {
+      var ex = new ICAL.Event(ve);
+      if (masters[ex.uid]) masters[ex.uid].relateException(ex); else singles.push(ex);
+    });
+    function push(summary, s, e, location) {
+      if (!s) return;
+      var start = s.toJSDate();
+      var end = e ? e.toJSDate() : new Date(start.getTime() + (s.isDate ? 864e5 : 0));
+      if (end <= rangeStart && start < rangeStart) return;
+      if (start >= rangeEnd) return;
+      out.push({ title: summary || '(no title)', start: start, end: end, allDay: s.isDate, location: location || '' });
+    }
+    singles.forEach(function (ev) { push(ev.summary, ev.startDate, ev.endDate, ev.location); });
+    Object.keys(masters).forEach(function (uid) {
+      var ev = masters[uid], it = ev.iterator(), next, guard = 0;
+      var dur = ev.endDate ? ev.endDate.toJSDate() - ev.startDate.toJSDate() : 0;
+      while ((next = it.next()) && guard++ < 20000) {
+        var js = next.toJSDate();
+        if (js >= rangeEnd) break;
+        if (js.getTime() + Math.max(dur, 1) <= rangeStart.getTime()) continue;
+        var d = ev.getOccurrenceDetails(next);
+        push(d.item.summary, d.startDate, d.endDate, d.item.location);
+      }
+    });
+    out.sort(function (a, b) { return (a.start - b.start) || (b.allDay - a.allDay); });
+    return out;
+  }
+
+  function demoEvents(day0) {
+    function at(d, h, m) { var x = new Date(day0); x.setDate(x.getDate() + d); x.setHours(h, m || 0, 0, 0); return x; }
+    return [
+      { title: 'School run', start: at(0, 8, 30), end: at(0, 9), location: '' },
+      { title: 'Dentist – Lucía', start: at(0, 17), end: at(0, 17, 45), location: 'Clínica Dental Sagra' },
+      { title: 'Swimming', start: at(1, 18), end: at(1, 19), location: 'Polideportivo' },
+      { title: 'Grandma visiting', start: at(3, 0), end: at(5, 0), allDay: true },
+      { title: 'Family dinner', start: at(4, 21), end: at(4, 23), location: '' }
+    ].map(function (e) { e.allDay = !!e.allDay; return e; });
+  }
+
+  function renderAgenda() {
+    var box = $('agenda');
+    if (!state.ics) return;
+    var day0 = new Date(); day0.setHours(0, 0, 0, 0);
+    var rangeEnd = new Date(day0); rangeEnd.setDate(rangeEnd.getDate() + CONFIG.DAYS_AHEAD);
+    var key = day0.getTime() + ':' + state.ics.length;
+    if (expandCache.key !== key) {
+      try {
+        expandCache.events = state.ics === 'demo' ? demoEvents(day0) : expandEvents(state.ics, day0, rangeEnd);
+        expandCache.key = key;
+        $('cal-note').textContent = '';
+      } catch (e) {
+        $('cal-note').textContent = T.calError;
+        return;
+      }
+    }
+    var events = expandCache.events, now = new Date(), html = '', shown = 0;
+    for (var i = 0; i < CONFIG.DAYS_AHEAD; i++) {
+      var ds = new Date(day0); ds.setDate(ds.getDate() + i);
+      var de = new Date(ds); de.setDate(de.getDate() + 1);
+      var rows = '';
+      events.forEach(function (ev) {
+        if (!(ev.start < de && (ev.end > ds || (ev.end - ev.start === 0 && ev.start >= ds)))) return;
+        var row = UI.ev, timeCls = UI.evTime, titleCls = UI.evTitle, time;
+        if (ev.allDay) { time = T.allDay; timeCls = UI.evTimeAccent; }
+        else if (ev.start < ds) time = '…' + fmtTime(ev.end);
+        else time = fmtTime(ev.start);
+        if (i === 0 && !ev.allDay) {
+          if (ev.end <= now && ev.end > ev.start) row = UI.evPast;
+          else if (ev.start <= now && ev.end > now) { timeCls = UI.evTimeNow; titleCls = UI.evTitleNow; }
+        }
+        rows += '<div class="' + row + '"><div class="' + timeCls + '">' + escapeHtml(time) + '</div>' +
+          '<div class="min-w-0"><div class="' + titleCls + '">' + escapeHtml(ev.title) + '</div>' +
+          (ev.location ? '<div class="' + UI.evLoc + '">' + escapeHtml(ev.location.split('\n')[0]) + '</div>' : '') +
+          '</div></div>';
+      });
+      if (!rows && i > 0) continue;
+      if (!rows) rows = '<p class="' + UI.nothing + '">' + escapeHtml(T.nothingToday) + '</p>';
+      var name = i === 0 ? T.today : i === 1 ? T.tomorrow :
+        capital(ds.toLocaleDateString(CONFIG.LOCALE, { weekday: 'long', day: 'numeric', month: 'short' }));
+      html += '<div class="' + (shown ? UI.dayNext : UI.day) + '"><h3 class="' + (i === 0 ? UI.dayTitleToday : UI.dayTitle) + '">' +
+        escapeHtml(name) + '</h3>' + rows + '</div>';
+      shown++;
+    }
+    if (shown <= 1 && !events.length) html += '<p class="' + UI.empty + '">' + escapeHtml(T.noEvents) + '</p>';
+    box.innerHTML = html;
+  }
+
+  /* ---------- lists ---------- */
+  function loadLists() {
+    if (state.pending) return; // don't overwrite a change that is still being saved
+    LISTS.forEach(function (name) {
+      if (DEMO) { state[name] = load('demo:' + name, true) || demoList(name); renderList(name); return; }
+      if (!token()) return;
+      api('GET', '/lists/' + name).then(function (data) {
+        if (state.pending) return;
+        if (state[name] && state[name].updated && data.updated < state[name].updated) return; // stale reply
+        state[name] = data; store('list:' + name, data); renderList(name);
+      }, function () {
+        if (!state[name]) { state[name] = load('list:' + name, true); renderList(name); }
+      });
+    });
+  }
+
+  function demoList(name) {
+    var words = name === 'todo'
+      ? ['Book car service', 'Sign school permission slip', 'Call the plumber']
+      : ['Milk', 'Bread', 'Tomatoes', 'Olive oil', 'Coffee'];
+    return { updated: 0, items: words.map(function (w, i) { return { id: 'd' + i, text: w, done: i === 1, at: 0 }; }) };
+  }
+
+  function change(name, op) {
+    var list = state[name] || { items: [] };
+    applyLocal(list, op);
+    state[name] = list;
+    renderList(name);
+    if (DEMO) { store('demo:' + name, list); return; }
+    state.pending++;
+    api('POST', '/lists/' + name, op).then(function (data) {
+      state.pending--;
+      if (!state.pending) { state[name] = data; store('list:' + name, data); renderList(name); }
+    }, function () {
+      state.pending--;
+      setTimeout(loadLists, 3000); // re-sync with the server
+    });
+  }
+
+  function applyLocal(list, op) {
+    var items = list.items, idx = -1;
+    for (var i = 0; i < items.length; i++) if (items[i].id === op.id) idx = i;
+    if (op.op === 'add') items.push({ id: op.id, text: op.text, done: false, at: Date.now() });
+    if (op.op === 'toggle' && idx > -1) items[idx].done = op.done;
+    if (op.op === 'delete' && idx > -1) items.splice(idx, 1);
+    if (op.op === 'clearDone') list.items = items.filter(function (x) { return !x.done; });
+    if (op.op === 'clear') list.items = [];
+  }
+
+  function renderList(name) {
+    var data = state[name], ul = $('list-' + name);
+    if (!data) return;
+    var open = data.items.filter(function (x) { return !x.done; });
+    var done = data.items.filter(function (x) { return x.done; });
+    ul.innerHTML = '';
+    if (!data.items.length) {
+      var li = document.createElement('li');
+      li.className = UI.empty;
+      li.textContent = name === 'todo' ? T.emptyTodo : T.emptyGroceries;
+      ul.appendChild(li);
+    }
+    open.concat(done).forEach(function (item) {
+      var li = document.createElement('li');
+      li.className = UI.item;
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = UI.tick;
+      b.setAttribute('role', 'checkbox');
+      b.setAttribute('aria-checked', item.done ? 'true' : 'false');
+      b.innerHTML = '<span class="' + (item.done ? UI.boxDone : UI.box) + '" aria-hidden="true">' + (item.done ? UI.check : '') + '</span>';
+      var label = document.createElement('span');
+      label.className = item.done ? UI.labelDone : UI.label;
+      label.textContent = item.text;
+      b.appendChild(label);
+      b.onclick = function () { change(name, { op: 'toggle', id: item.id, done: !item.done }); };
+      var del = document.createElement('button');
+      del.type = 'button'; del.className = UI.del; del.innerHTML = '&times;';
+      del.setAttribute('aria-label', 'Remove ' + item.text);
+      del.onclick = function () { change(name, { op: 'delete', id: item.id }); };
+      li.appendChild(b); li.appendChild(del);
+      ul.appendChild(li);
+    });
+    $('count-' + name).textContent = open.length ? open.length + ' ' + T.left : '';
+    $('actions-' + name).hidden = !data.items.length;
+    $('clear-' + name).hidden = !done.length;
+    $('clear-' + name).textContent = T.clearDone + ' (' + done.length + ')';
+    if (!armed[name]) { $('clearall-' + name).textContent = T.clearAll; $('clearall-' + name).className = UI.clearAll; }
+  }
+
+  // "Clear list" asks for a second tap within 4 seconds, so a stray tap can't empty a list
+  var armed = {};
+  LISTS.forEach(function (name) {
+    $('clear-' + name).onclick = function () { change(name, { op: 'clearDone' }); };
+    $('clearall-' + name).onclick = function () {
+      var btn = this;
+      if (armed[name]) {
+        clearTimeout(armed[name]); armed[name] = 0;
+        change(name, { op: 'clear' });
+        return;
+      }
+      btn.textContent = T.clearConfirm; btn.className = UI.clearAllArmed;
+      armed[name] = setTimeout(function () {
+        armed[name] = 0; btn.textContent = T.clearAll; btn.className = UI.clearAll;
+      }, 4000);
+    };
+  });
+  var forms = document.querySelectorAll('form[data-list]');
+  for (var f = 0; f < forms.length; f++) (function (form) {
+    form.onsubmit = function (e) {
+      e.preventDefault();
+      var input = form.querySelector('input'), text = input.value.replace(/\s+/g, ' ').trim();
+      if (!text) return;
+      change(form.getAttribute('data-list'), { op: 'add', id: uid(), text: text.slice(0, 200) });
+      input.value = '';
+      input.focus();
+    };
+  })(forms[f]);
+
+  /* ---------- setup screen ---------- */
+  function showSetup(msg) {
+    $('setup').className = UI.setupShown;
+    $('setup-msg').textContent = msg || '';
+    if (!FRAME) $('setup-token').focus();
+  }
+  $('setup-form').onsubmit = function (e) {
+    e.preventDefault();
+    var v = $('setup-token').value.trim();
+    if (!v) return;
+    store('token', v);
+    $('setup').className = 'hidden';
+    loadLists(); loadCalendar();
+  };
+
+  /* ---------- status line ---------- */
+  function renderStatus() {
+    var s = $('status');
+    if (DEMO) { s.textContent = T.demo; s.className = UI.status; return; }
+    if (state.offline) { s.textContent = T.offline; s.className = UI.statusBad; return; }
+    s.className = UI.status;
+    s.textContent = state.lastOk ? T.synced + ' ' + fmtTime(new Date(state.lastOk)) : '';
+  }
+
+  /* ---------- frame: night dimming + tiny shift against burn-in ---------- */
+  function nightAndShift(now) {
+    var h = now.getHours(), n = CONFIG.NIGHT;
+    var night = n.from > n.to ? (h >= n.from || h < n.to) : (h >= n.from && h < n.to);
+    $('night').style.opacity = night ? n.dim : 0;
+    if (now.getMinutes() === 0) {
+      var x = Math.round(Math.random() * 6 - 3), y = Math.round(Math.random() * 6 - 3);
+      $('board').style.transform = $('board').style.webkitTransform = 'translate(' + x + 'px,' + y + 'px)';
+    }
+  }
+
+  /* ---------- utils ---------- */
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+  function capital(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  /* ---------- start ---------- */
+  if (!DEMO) {
+    LISTS.forEach(function (n) { state[n] = load('list:' + n, true); renderList(n); });
+    state.ics = load('ics');
+    if (!token()) showSetup();
+  }
+  tick();
+  loadLists();
+  loadCalendar();
+  setInterval(tick, 1000);
+  setInterval(loadLists, CONFIG.LIST_REFRESH_SEC * 1000);
+  setInterval(loadCalendar, CONFIG.CALENDAR_REFRESH_MIN * 60000);
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) { loadLists(); loadCalendar(); }
+  });
+  if (FRAME && CONFIG.FRAME_RELOAD_HOURS) {
+    setTimeout(function () { location.reload(); }, CONFIG.FRAME_RELOAD_HOURS * 3600000);
+  }
+})();
+</script>
+</body>
+</html>

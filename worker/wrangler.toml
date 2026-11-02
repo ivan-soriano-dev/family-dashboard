@@ -1,0 +1,16 @@
+# Only needed if you deploy with the command line (npx wrangler deploy).
+# If you use the Cloudflare dashboard instead, you can ignore this file.
+name = "family-dashboard"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://YOUR-GITHUB-USERNAME.github.io"
+
+[[kv_namespaces]]
+binding = "DATA"
+id = "PASTE-YOUR-KV-NAMESPACE-ID-HERE"
+
+# Secrets are NOT stored here. Set them with:
+#   npx wrangler secret put ICLOUD_ICS_URL
+#   npx wrangler secret put FAMILY_TOKEN
