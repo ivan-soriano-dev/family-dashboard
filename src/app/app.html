@@ -1,0 +1,33 @@
+<main
+  class="flex min-h-full flex-col gap-4 px-4 pt-5 pb-8 transition-transform duration-[2s] motion-reduce:transition-none wall:grid wall:h-full wall:grid-cols-[1.35fr_1fr_1fr] wall:grid-rows-[auto_minmax(0,1fr)] wall:gap-x-[2vw] wall:gap-y-[3vh] wall:px-[2.4vw] wall:py-[3.2vh]"
+  [style.transform]="display.shift()"
+>
+  <app-clock-face class="mt-1 wall:col-start-1 wall:row-start-1 wall:mt-0" />
+
+  <app-list-panel
+    class="wall:col-start-2 wall:row-span-2 wall:row-start-1"
+    name="todo"
+    [heading]="text.todo"
+    [placeholder]="text.addTask"
+    [emptyText]="text.emptyTodo"
+  />
+
+  <app-list-panel
+    class="wall:col-start-3 wall:row-span-2 wall:row-start-1"
+    name="groceries"
+    [heading]="text.groceries"
+    [placeholder]="text.addItem"
+    [emptyText]="text.emptyGroceries"
+  />
+
+  <app-agenda class="wall:col-start-1 wall:row-start-2" />
+</main>
+
+<app-status-line />
+
+<div
+  class="pointer-events-none fixed inset-0 z-10 bg-black transition-opacity duration-[60s] motion-reduce:transition-none"
+  [style.opacity]="display.nightOpacity()"
+></div>
+
+<app-token-dialog />

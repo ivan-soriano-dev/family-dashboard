@@ -1,0 +1,115 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+
+/* ─── Theme colours ────────────────────────────────────────────────────────────
+   The primary colour is set in src/app/settings.ts (primaryColor) and applied at
+   startup. The four values below are only the defaults used for the very first
+   paint; they match #ecd8dc. Surfaces/text are plain colours for light and dark.  */
+:root {
+  --primary: rgb(236 216 220);
+  --on-primary: rgb(16 24 40);
+  --accent-light: rgb(174 88 105);
+  --accent-dark: rgb(236 216 220);
+
+  --bg-page: rgb(249 250 251);
+  --bg-panel: rgb(255 255 255);
+  --bg-hover: rgb(242 244 247);
+  --line: rgb(228 231 236);
+  --line-strong: rgb(208 213 221);
+  --fg: rgb(16 24 40);
+  --fg-2: rgb(52 64 84);
+  --fg-3: rgb(71 84 103);
+  --fg-4: rgb(102 112 133);
+  --danger: rgb(180 35 24);
+  --accent: var(--accent-light);
+  color-scheme: light;
+}
+
+.dark {
+  --bg-page: rgb(12 17 29);
+  --bg-panel: rgb(16 24 40);
+  --bg-hover: rgb(29 41 57);
+  --line: rgb(29 41 57);
+  --line-strong: rgb(52 64 84);
+  --fg: rgb(249 250 251);
+  --fg-2: rgb(208 213 221);
+  --fg-3: rgb(152 162 179);
+  --fg-4: rgb(102 112 133);
+  --danger: rgb(253 162 155);
+  --accent: var(--accent-dark);
+  color-scheme: dark;
+}
+
+/* Tailwind names for those colours: bg-primary, text-on-primary, text-accent, bg-page, … */
+@theme inline {
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-accent: var(--accent);
+  --color-page: var(--bg-page);
+  --color-panel: var(--bg-panel);
+  --color-hover: var(--bg-hover);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-fg-3: var(--fg-3);
+  --color-fg-4: var(--fg-4);
+  --color-danger: var(--danger);
+}
+
+@theme {
+  --font-sans:
+    'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* wall: = wide screens (photo frame, tablets, desktops) */
+  --breakpoint-wall: 56.25rem;
+}
+
+/* frame: = only on the photo frame (?mode=frame), e.g. frame:hidden */
+@custom-variant frame (&:where(.frame, .frame *));
+
+/* ─── Base ─────────────────────────────────────────────────────────────────── */
+@layer base {
+  html,
+  body {
+    height: 100%;
+  }
+  body {
+    @apply bg-page font-sans text-fg antialiased wall:overflow-hidden frame:cursor-none;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    -webkit-tap-highlight-color: transparent;
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  button {
+    cursor: pointer;
+  }
+}
+
+/* ─── Shared pieces used by several components ─────────────────────────────── */
+@utility panel {
+  @apply flex min-h-0 flex-col overflow-hidden rounded-2xl border border-line bg-panel;
+}
+@utility panel-head {
+  @apply flex items-baseline justify-between px-[18px] pt-4 pb-2.5 wall:px-[1.4vw] wall:pt-[2.2vh] wall:pb-[1.2vh];
+}
+@utility panel-title {
+  @apply text-xl font-semibold tracking-tight wall:text-[3.2vh];
+}
+@utility panel-count {
+  @apply text-sm text-fg-4 tabular-nums wall:text-[2.2vh];
+}
+@utility panel-body {
+  @apply min-h-0 flex-auto overflow-y-auto px-2 pb-2;
+}
+@utility empty-note {
+  @apply px-3 pt-2 pb-3.5 text-[15px] text-fg-4 wall:text-[2.3vh];
+}
+@utility field {
+  @apply min-w-0 flex-auto rounded-lg border border-line-strong bg-page px-3.5 py-2.5 text-base outline-none placeholder:text-fg-4 focus:border-accent focus:ring-4 focus:ring-primary/40;
+}
+@utility primary-button {
+  @apply rounded-lg bg-primary px-4 py-2.5 text-[15px] font-semibold text-on-primary hover:brightness-95;
+}

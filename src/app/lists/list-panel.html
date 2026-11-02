@@ -1,0 +1,97 @@
+<div class="panel-head">
+  <h2 class="panel-title" [id]="headingId()">{{ heading() }}</h2>
+  @if (openCount()) {
+    <span class="panel-count">{{ openCount() }} {{ text.left }}</span>
+  }
+</div>
+
+<ul class="panel-body">
+  @for (item of items(); track item.id) {
+    <li class="flex items-center rounded-lg hover:bg-hover">
+      <button
+        type="button"
+        role="checkbox"
+        [attr.aria-checked]="item.done"
+        (click)="toggle(item.id, !item.done)"
+        class="flex min-w-0 flex-auto items-center gap-3 px-2.5 py-2.5 text-left text-[17px] wall:px-[0.8vw] wall:py-[1vh] wall:text-[2.6vh]"
+      >
+        <span
+          aria-hidden="true"
+          class="flex size-[22px] shrink-0 items-center justify-center rounded-full border-2 wall:size-[2.8vh]"
+          [class]="item.done ? 'border-accent bg-primary text-on-primary' : 'border-line-strong'"
+        >
+          @if (item.done) {
+            <svg
+              viewBox="0 0 16 16"
+              class="size-3/5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M3.5 8.5l3 3 6-7" />
+            </svg>
+          }
+        </span>
+        <span class="min-w-0 wrap-anywhere" [class]="item.done ? 'text-fg-4 line-through' : ''">{{
+          item.text
+        }}</span>
+      </button>
+      <button
+        type="button"
+        (click)="remove(item.id)"
+        [attr.aria-label]="text.remove + ' ' + item.text"
+        class="size-10 shrink-0 rounded-lg text-[22px] leading-none text-fg-4 hover:text-danger frame:hidden"
+      >
+        &times;
+      </button>
+    </li>
+  } @empty {
+    @if (loaded()) {
+      <li class="empty-note">{{ emptyText() }}</li>
+    }
+  }
+</ul>
+
+@if (items().length) {
+  <div class="flex items-center justify-between px-3 pb-2.5 frame:hidden">
+    <button
+      type="button"
+      (click)="clearList()"
+      class="rounded-lg px-2.5 py-1.5 text-sm"
+      [class]="
+        confirmingClear()
+          ? 'bg-danger/10 font-semibold text-danger'
+          : 'text-fg-3 hover:bg-hover hover:text-danger'
+      "
+    >
+      {{ confirmingClear() ? text.clearConfirm : text.clearList }}
+    </button>
+    @if (doneCount()) {
+      <button
+        type="button"
+        (click)="removeCompleted()"
+        class="rounded-lg px-2.5 py-1.5 text-sm text-fg-3 hover:bg-hover hover:text-fg"
+      >
+        {{ text.removeCompleted }} ({{ doneCount() }})
+      </button>
+    }
+  </div>
+}
+
+<form
+  class="flex gap-2 border-t border-line px-3 pt-2.5 pb-3 frame:hidden"
+  (submit)="add($event, field)"
+>
+  <input
+    #field
+    type="text"
+    maxlength="200"
+    autocomplete="off"
+    class="field"
+    [placeholder]="placeholder()"
+    [attr.aria-label]="placeholder()"
+  />
+  <button type="submit" class="primary-button">{{ text.add }}</button>
+</form>
