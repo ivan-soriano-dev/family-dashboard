@@ -16,24 +16,41 @@ calendar and stores shared lists in Cloudflare KV.
 | [`worker/wrangler.toml`](worker/wrangler.toml) | Optional CLI deployment settings and KV binding. Replace placeholders before use; keep secrets out of this file. |
 | [`package.json`](package.json) and `package-lock.json` | Supported Node.js versions, commands, and pinned dependencies. |
 
-In the Cloudflare dashboard, open the Worker’s **Settings / Bindings**:
+Cloudflare dashboard: <https://dash.cloudflare.com/>. Select your account, then
+open **Compute →** [**Workers & Pages**](https://dash.cloudflare.com/?to=/:account/workers-and-pages),
+select **family-dashboard**. Menu paths below start from that Worker.
 
-| Setting | Purpose |
-|---|---|
-| `DATA` (KV binding) | Connects the Worker to the namespace holding shared data. |
-| `FAMILY_TOKEN` (secret) | Shared password required to read the calendar and read or change lists. |
-| `ICLOUD_ICS_URL` (secret) | Public iCloud calendar subscription link. |
-| `ALLOWED_ORIGIN` (variable) | Frontend origin, such as `https://<username>.github.io`, without the repository path or trailing slash. This is a browser restriction, not authentication. |
+| Setting | Where to find or edit it | Purpose |
+|---|---|---|
+| `DATA` (KV binding) | **Settings → Bindings → DATA → pencil icon**; **Add binding → KV namespace** if missing. | Connects the Worker to the namespace holding shared data. |
+| `FAMILY_TOKEN` (secret) | **Settings → Runtime variables and secrets → FAMILY_TOKEN → pencil icon**; **Add variable** if missing, with type **Secret**. | Shared password required to read the calendar and read or change lists. Existing secret values are hidden; replace them to change them. |
+| `ICLOUD_ICS_URL` (secret) | **Settings → Runtime variables and secrets → ICLOUD_ICS_URL → pencil icon**; **Add variable** if missing, with type **Secret**. | Public iCloud calendar subscription link. |
+| `ALLOWED_ORIGIN` (variable) | **Settings → Runtime variables and secrets → ALLOWED_ORIGIN → pencil icon**; **Add variable** if missing, with type **Text**. | Frontend origin, such as `https://<username>.github.io`, without the repository path or trailing slash. This is a browser restriction, not authentication. |
 
-The Worker address is available under **Domains & Routes**. Use it as `workerUrl`.
+![Cloudflare Settings: runtime variables and secrets, edit buttons, and DATA binding; values redacted](docs/images/cloudflare-settings-redacted.png)
+
+The screenshot shows the navigation; store `FAMILY_TOKEN` and `ICLOUD_ICS_URL` as
+**Secret**, rather than the plain **Variable** type shown. Some dashboard versions
+label the section **Variables and Secrets** or provide a separate **Bindings** tab.
+
+Find the Worker address under **Settings → Domains & Routes**; use it as
+`workerUrl` in `src/app/settings.ts`. Save or deploy changes when prompted.
 
 ## Storage and backups
 
 | Location | Contents |
 |---|---|
 | iCloud Calendar | Original calendar events; edit them in Apple Calendar. |
-| Cloudflare KV, bound as `DATA` | `list:todo` and `list:groceries` hold shared lists. `cache:calendar` holds the last fetched calendar, refreshed after 15 minutes when requested. |
+| [Cloudflare KV](https://dash.cloudflare.com/?to=/:account/workers/kv/namespaces), bound as `DATA` | `list:todo` and `list:groceries` hold shared lists. `cache:calendar` holds the last fetched calendar, refreshed after 15 minutes when requested. |
 | Each browser’s `localStorage` | `fd:token` stores the password; `fd:list:todo`, `fd:list:groceries`, and `fd:ics` store local copies. Demo data uses `fd:demo:…`. |
+
+To view or edit stored data, open **Storage & databases → Workers KV →
+family-dashboard-data → KV Pairs** (or the namespace bound as `DATA` if renamed).
+Select a key to inspect or edit its value; use its delete action to remove it.
+Check **Worker → Settings → Bindings → DATA** for the namespace
+name if unsure.
+
+![Cloudflare Storage and databases menu: Workers KV and the data namespace; account name redacted](docs/images/cloudflare-kv-redacted.png)
 
 Back up lists by securely exporting or copying their KV values before changing or
 deleting data. The app has no list history or automatic backups. Browser copies
@@ -62,8 +79,11 @@ open the frontend URL with `?mode=frame` for a permanent display.
   and its latest run under **Actions** when checking deployment. A push to `main`
   installs dependencies, runs tests, builds Angular with the Pages base path, and
   publishes `dist/family-dashboard/browser`.
-- **Worker:** update `worker/worker.js`, then paste it into the Cloudflare Worker
-  editor and deploy. Frontend pushes do not deploy the Worker. CLI deployment is
+- **Worker:** update `worker/worker.js`, then open
+  [**Workers & Pages**](https://dash.cloudflare.com/?to=/:account/workers-and-pages)
+  → **family-dashboard → Edit code**, paste the code, and select **Deploy**.
+  Review releases under **family-dashboard → Deployments**.
+  Frontend pushes do not deploy the Worker. CLI deployment is
   also possible after configuring `worker/wrangler.toml`.
 
 See [`docs/setup-guide-en.md`](docs/setup-guide-en.md) for initial setup.
